@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rotating Days-Off Schedule Helper</title>
+<style>
+  :root{
+    --bg:#f4f7fb; --card:#fff; --ink:#172033; --muted:#667085;
+    --line:#d9e2ef; --accent:#1267a8; --accent2:#eaf4fb;
+    --off:#ffe8e8; --work:#e9f7ec;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:1180px;margin:28px auto;padding:0 16px}
+  h1{margin:0 0 6px;font-size:28px}
+  .lead{margin:0 0 22px;color:var(--muted)}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 5px 18px rgba(24,39,75,.05)}
+  .card h2{font-size:18px;margin:0 0 14px}
+  label{display:block;font-weight:650;margin:10px 0 5px}
+  input,select,button,textarea{font:inherit}
+  input,select{width:100%;padding:10px 11px;border:1px solid #bcc9d8;border-radius:9px;background:white}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .daycheck{position:relative}
+  .daycheck input{position:absolute;opacity:0}
+  .daycheck label{margin:0;padding:9px 4px;text-align:center;border:1px solid #bcc9d8;border-radius:8px;cursor:pointer;font-weight:600}
+  .daycheck input:checked+label{background:var(--accent);color:white;border-color:var(--accent)}
+  .help{font-size:13px;color:var(--muted);margin-top:6px}
+  button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}
+  .primary{background:var(--accent);color:white}
+  .secondary{background:#eef2f6;color:#25324a}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+  .full{grid-column:1/-1}
+  .notice{background:var(--accent2);border-left:4px solid var(--accent);padding:10px 12px;border-radius:7px;margin:0 0 14px}
+  .tablewrap{overflow:auto}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:8px 7px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+  th{background:#1267a8;color:white;position:sticky;top:0}
+  th:first-child,td:first-child{border-left:1px solid var(--line)}
+  tr:first-child th{border-top:1px solid var(--line)}
+  td.period{text-align:left;font-weight:650;background:#fafcff}
+  td.off{background:var(--off);font-weight:800}
+  td.work{background:var(--work)}
+  .entry{display:block;font-size:14px;line-height:1.1}
+  .entrydate{display:block;margin-top:3px;font-size:10px;font-weight:600;color:#667085}
+  td.off .entrydate{color:#8f3030}
+  .monthtag{display:inline-block;font-size:11px;padding:2px 6px;border-radius:10px;background:#e8eef7;color:#344054;margin-left:5px}
+  .copyline{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#101828;color:#f2f4f7;padding:10px;border-radius:8px;overflow:auto;white-space:pre;margin-top:6px}
+  .error{display:none;background:#fff1f1;color:#9b1c1c;border:1px solid #f5b8b8;padding:10px;border-radius:8px;margin-top:12px}
+  .entryguide{max-width:760px;margin:0 auto;border:2px solid #4b5563;padding:16px;background:#fbfbf8}
+  .guideperiods{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:12px}
+  .guideperiods label{margin-top:0}
+  .guideweeks{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .guideweek h3{margin:0 0 7px;font-size:16px}
+  .guiderow{display:grid;grid-template-columns:minmax(100px,1fr) 1fr 1fr;align-items:center;gap:4px;margin:4px 0}
+  .guideday{text-align:right;padding-right:5px;font-weight:650}
+  .guidedate{display:block;font-size:10px;color:var(--muted);font-weight:500}
+  .guidebox{min-height:36px;padding:7px 8px;border:1px solid #7d8794;border-radius:3px;background:#fff;font-weight:650;display:flex;align-items:center;justify-content:space-between}
+  .guidebox::after{content:"▾";font-size:12px;color:#111}
+  .guiderow.isoff .guidebox{background:#fff1f1;color:#9b1c1c;font-size:12px;font-weight:650}
+  .guiderow.isoff .guidebox::after{color:#9b1c1c}
+  .guidelegend{text-align:center;margin:12px 0 0;font-size:13px;color:var(--muted)}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}.days{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:650px){.guideweeks,.guideperiods{grid-template-columns:1fr}.entryguide{padding:12px}.guiderow{grid-template-columns:minmax(88px,1fr) 1fr 1fr}}
+  @media print{
+    body{background:#fff}.wrap{max-width:none;margin:0}.card{box-shadow:none}.config,.actions,.lead{display:none}
+  }
+</style>
+</head>
+<body>
+<noscript><div style="padding:16px;background:#fff3cd;color:#7a5d00;font-family:Arial">JavaScript is disabled in this preview. Download this file and open it directly in Chrome, Edge, or Safari.</div></noscript>
+<div class="wrap">
+  <h1>Rotating Days-Off Schedule Helper</h1>
+  <p class="lead">Choose your starting days off once. The tool advances them one weekday each month and builds the two-week rows for the overtime/time-off system.</p>
+
+  <div class="grid">
+    <section class="card config">
+      <h2>1. Rotation setup</h2>
+
+      <label for="anchorMonth">Month these days off apply to</label>
+      <input id="anchorMonth" type="month" value="2026-07">
+
+      <label>Days off in the starting month</label>
+      <div class="days" id="dayChecks">
+        <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
+        <div class="daycheck"><input type="checkbox" id="d1" checked><label for="d1">Mon</label></div>
+        <div class="daycheck"><input type="checkbox" id="d2"><label for="d2">Tue</label></div>
+        <div class="daycheck"><input type="checkbox" id="d3"><label for="d3">Wed</label></div>
+        <div class="daycheck"><input type="checkbox" id="d4"><label for="d4">Thu</label></div>
+        <div class="daycheck"><input type="checkbox" id="d5"><label for="d5">Fri</label></div>
+        <div class="daycheck"><input type="checkbox" id="d6" checked><label for="d6">Sat</label></div>
+      </div>
+      <div class="help">For July 2026, select Saturday, Sunday, and Monday.</div>
+      <div class="notice" style="margin-top:14px;margin-bottom:0">The days off automatically move forward one day each month. Each new rotation starts on the Monday of the week containing the 1st.</div>
+    </section>
+
+    <section class="card config">
+      <h2>2. Output setup</h2>
+
+      <div class="row">
+        <div>
+          <label for="firstPeriod">First pay-period Monday</label>
+          <input id="firstPeriod" type="date" value="2026-07-27">
+        </div>
+        <div>
+          <label for="periodCount">Number of 2-week periods</label>
+          <input id="periodCount" type="number" min="1" max="40" value="12">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="workCode">Work-day entry</label>
+          <input id="workCode" value="D10">
+        </div>
+        <div>
+          <label for="offCode">Day-off entry</label>
+          <input id="offCode" value="X">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="generate">Generate schedule</button>
+        <button class="secondary" id="copyAll">Copy all rows</button>
+        <button class="secondary" onclick="window.print()">Print</button>
+      </div>
+      <div class="error" id="error"></div>
+    </section>
+
+    <section class="card full">
+      <h2>3. What to enter</h2>
+      <div class="notice" id="summary">Generate the schedule to see the rotation.</div>
+      <div class="tablewrap">
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>Period</th>
+              <th>MON1</th><th>TUE1</th><th>WED1</th><th>THR1</th><th>FRI1</th><th>SAT1</th><th>SUN1</th>
+              <th>MON2</th><th>TUE2</th><th>WED2</th><th>THR2</th><th>FRI2</th><th>SAT2</th><th>SUN2</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>4. Visual entry guide</h2>
+      <div class="notice">Choose the same two-week period on your work system, then copy this box one day at a time. Work days use <strong>Days + 10 Hours</strong>. Days off leave both dropdowns blank.</div>
+      <div class="entryguide">
+        <div class="guideperiods">
+          <div>
+            <label for="guidePeriod">From Period</label>
+            <select id="guidePeriod"></select>
+          </div>
+          <div>
+            <label for="guidePeriodDisplay">To Period</label>
+            <input id="guidePeriodDisplay" readonly>
+          </div>
+        </div>
+        <div class="guideweeks">
+          <div class="guideweek">
+            <h3>First Week</h3>
+            <div id="guideWeek1"></div>
+          </div>
+          <div class="guideweek">
+            <h3>Second Week</h3>
+            <div id="guideWeek2"></div>
+          </div>
+        </div>
+        <p class="guidelegend"><strong>Leave blank</strong> means do not select anything in either work-system dropdown.</p>
+      </div>
+    </section>
+
+    <section class="card full">
+      <h2>Copy-friendly rows</h2>
+      <div class="help">Each line is: period, then MON1 through SUN2.</div>
+      <div class="copyline" id="copyText">No rows generated yet.</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const systemOrder = [1,2,3,4,5,6,0]; // Monday through Sunday
+let generatedPeriods=[];
+
+function localDate(value){
+  const [y,m,d] = value.split("-").map(Number);
+  return new Date(y,m-1,d);
+}
+function ymd(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function mdy(d){
+  return `${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}-${d.getFullYear()}`;
+}
+function addDays(d,n){
+  const x=new Date(d); x.setDate(x.getDate()+n); return x;
+}
+function monthDiff(aY,aM,bY,bM){
+  return (bY-aY)*12+(bM-aM);
+}
+function effectiveRotationMonth(date, rule){
+  if(rule==="firstDay") return {y:date.getFullYear(),m:date.getMonth()};
+  if(rule==="firstMonday"){
+    const first = new Date(date.getFullYear(),date.getMonth(),1);
+    const delta = (8-first.getDay())%7;
+    const switchDate = addDays(first,delta);
+    if(date < switchDate){
+      const prev = new Date(date.getFullYear(),date.getMonth()-1,1);
+      return {y:prev.getFullYear(),m:prev.getMonth()};
+    }
+    return {y:date.getFullYear(),m:date.getMonth()};
+  }
+  // Monday of the week containing the first:
+  // The next month's rotation can begin during the final days of this month.
+  const nextFirst = new Date(date.getFullYear(),date.getMonth()+1,1);
+  const nextSwitch = addDays(nextFirst, -((nextFirst.getDay()+6)%7));
+  if(date >= nextSwitch) return {y:nextFirst.getFullYear(),m:nextFirst.getMonth()};
+  const currentFirst = new Date(date.getFullYear(),date.getMonth(),1);
+  const currentSwitch = addDays(currentFirst, -((currentFirst.getDay()+6)%7));
+  if(date >= currentSwitch) return {y:date.getFullYear(),m:date.getMonth()};
+  const prev = new Date(date.getFullYear(),date.getMonth()-1,1);
+  return {y:prev.getFullYear(),m:prev.getMonth()};
+}
+function rotatedOffDays(date, anchorY, anchorM, baseDays, direction, rule){
+  const eff=effectiveRotationMonth(date,rule);
+  const shifts=monthDiff(anchorY,anchorM,eff.y,eff.m)*direction;
+  return new Set(baseDays.map(d=>((d+shifts)%7+7)%7));
+}
+function renderGuide(){
+  const select=document.getElementById("guidePeriod");
+  const period=generatedPeriods[Number(select.value)||0];
+  const week1=document.getElementById("guideWeek1");
+  const week2=document.getElementById("guideWeek2");
+  week1.innerHTML="";
+  week2.innerHTML="";
+  if(!period){
+    document.getElementById("guidePeriodDisplay").value="Generate a schedule first";
+    return;
+  }
+  document.getElementById("guidePeriodDisplay").value=period.label;
+  period.vals.forEach((value,i)=>{
+    const date=addDays(period.start,i);
+    const isOff=value===period.off;
+    const row=document.createElement("div");
+    row.className=`guiderow${isOff?" isoff":""}`;
+    const day=document.createElement("div");
+    day.className="guideday";
+    day.innerHTML=`${dayNames[date.getDay()]}<span class="guidedate">${date.getMonth()+1}/${date.getDate()}</span>`;
+    const first=document.createElement("div");
+    first.className="guidebox";
+    first.textContent=isOff?"Leave blank":"Days";
+    const second=document.createElement("div");
+    second.className="guidebox";
+    second.textContent=isOff?"Leave blank":"10 Hours";
+    row.append(day,first,second);
+    (i<7?week1:week2).appendChild(row);
+  });
+}
+function generate(){
+  const err=document.getElementById("error");
+  err.style.display="none";
+  const anchor=document.getElementById("anchorMonth").value;
+  const startVal=document.getElementById("firstPeriod").value;
+  const count=Number(document.getElementById("periodCount").value);
+  const work=document.getElementById("workCode").value.trim()||"D10";
+  const off=document.getElementById("offCode").value.trim()||"X";
+  const direction=1;
+  const rule="weekContainingFirst";
+  const baseDays=Array.from({length:7},(_,i)=>i)
+    .filter(i=>document.getElementById("d"+i).checked);
+
+  if(!anchor||!startVal||!count||baseDays.length===0){
+    err.textContent="Choose an anchor month, a starting pay period, and at least one day off.";
+    err.style.display="block"; return;
+  }
+  const [anchorY,anchorM1]=anchor.split("-").map(Number), anchorM=anchorM1-1;
+  const first=localDate(startVal);
+  if(first.getDay()!==1){
+    err.textContent="The first pay-period date should be a Monday.";
+    err.style.display="block"; return;
+  }
+
+  const tbody=document.querySelector("#scheduleTable tbody");
+  tbody.innerHTML="";
+  const lines=[];
+  const rotations=new Map();
+  generatedPeriods=[];
+
+  for(let p=0;p<count;p++){
+    const periodStart=addDays(first,p*14);
+    const periodEnd=addDays(periodStart,13);
+    const tr=document.createElement("tr");
+    const periodTd=document.createElement("td");
+    periodTd.className="period";
+    periodTd.textContent=`${mdy(periodStart)} – ${mdy(periodEnd)}`;
+    tr.appendChild(periodTd);
+
+    const vals=[];
+    for(let i=0;i<14;i++){
+      const date=addDays(periodStart,i);
+      const offDays=rotatedOffDays(date,anchorY,anchorM,baseDays,direction,rule);
+      const value=offDays.has(date.getDay())?off:work;
+      vals.push(value);
+      const td=document.createElement("td");
+      const entry=document.createElement("span");
+      entry.className="entry";
+      entry.textContent=value;
+      const entryDate=document.createElement("span");
+      entryDate.className="entrydate";
+      entryDate.textContent=`${date.getMonth()+1}/${date.getDate()}`;
+      td.append(entry,entryDate);
+      td.className=value===off?"off":"work";
+      td.title=`${dayNames[date.getDay()]} ${mdy(date)}`;
+      tr.appendChild(td);
+
+      const eff=effectiveRotationMonth(date,rule);
+      const key=`${eff.y}-${String(eff.m+1).padStart(2,"0")}`;
+      if(!rotations.has(key)){
+        rotations.set(key,[...offDays].sort((a,b)=>systemOrder.indexOf(a)-systemOrder.indexOf(b)));
+      }
+    }
+    tbody.appendChild(tr);
+    lines.push(`${mdy(periodStart)}--${mdy(periodEnd)}\t${vals.join("\t")}`);
+    generatedPeriods.push({label:`${mdy(periodStart)} – ${mdy(periodEnd)}`,start:periodStart,vals,off});
+  }
+
+  document.getElementById("copyText").textContent=lines.join("\n");
+  const summaryParts=[...rotations.entries()].map(([month,days])=>{
+    const [y,m]=month.split("-").map(Number);
+    const name=new Date(y,m-1,1).toLocaleString(undefined,{month:"long",year:"numeric"});
+    return `${name}: ${days.map(d=>dayNames[d]).join(", ")}`;
+  });
+  document.getElementById("summary").textContent=summaryParts.join("  •  ");
+  const guideSelect=document.getElementById("guidePeriod");
+  guideSelect.innerHTML="";
+  generatedPeriods.forEach((period,i)=>{
+    const option=document.createElement("option");
+    option.value=i;
+    option.textContent=period.label;
+    guideSelect.appendChild(option);
+  });
+  renderGuide();
+}
+document.getElementById("generate").addEventListener("click",generate);
+document.getElementById("guidePeriod").addEventListener("change",renderGuide);
+document.getElementById("copyAll").addEventListener("click",async()=>{
+  const text=document.getElementById("copyText").textContent;
+  try{
+    await navigator.clipboard.writeText(text);
+    const b=document.getElementById("copyAll"), old=b.textContent;
+    b.textContent="Copied!";
+    setTimeout(()=>b.textContent=old,1200);
+  }catch(e){
+    alert("Copy was blocked by the browser. Select the text in the black box and copy it manually.");
+  }
+});
+generate();
+</script>
+</body>
+</html>
