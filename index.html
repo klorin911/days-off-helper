@@ -6,64 +6,96 @@
 <title>Rotating Days Off</title>
 <style>
   :root{
-    --bg:#f5f7f9; --surface:#fff; --ink:#182230; --muted:#667085;
-    --line:#dfe4ea; --line-strong:#c7d0da; --accent:#1f65a6;
-    --accent-hover:#18578f; --accent-soft:#eef5fb; --off:#fff1f0;
-    --off-ink:#922c28; --work:#eef7f0; --radius:12px;
+    color-scheme:light;
+    --bg:#f5f7f9; --surface:#fff; --ink:#182230; --ink-soft:#344054; --muted:#667085;
+    --line:#e3e8ee; --line-strong:#8a94a3; --accent:#1f65a6; --accent-hover:#18578f;
+    --accent-soft:#eef5fb; --on-accent:#fff;
+    --off:#fff1f0; --off-ink:#922c28; --work:#eef7f0; --th-bg:#f1f4f7; --table-line:#c2cbd6; --radius:12px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      color-scheme:dark;
+      --bg:#0f141a; --surface:#161c24; --ink:#e7ecf2; --ink-soft:#c2cbd6; --muted:#8a94a3;
+      --line:#262f3b; --line-strong:#5d6b7e; --accent:#5c9bd6; --accent-hover:#74ade2;
+      --accent-soft:#182533; --on-accent:#0f141a;
+      --off:#33211e; --off-ink:#f0a8a1; --work:#1b2a21; --th-bg:#1c242e; --table-line:#4a5869;
+    }
   }
   *{box-sizing:border-box}
   body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
   button,input,select{font:inherit}
   button{cursor:pointer}
-  .wrap{width:min(100% - 32px,760px);margin:0 auto;padding:48px 0 64px}
-  header{margin-bottom:24px}
-  h1{margin:0;font-size:clamp(28px,6vw,38px);line-height:1.15;letter-spacing:-.035em}
-  .lead{margin:8px 0 0;color:var(--muted)}
+  .wrap{width:min(100% - 32px,760px);margin:0 auto;padding:40px 0 64px}
   .stack{display:grid;gap:16px}
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
-  .main-panel{padding:24px;box-shadow:0 8px 28px rgba(16,24,40,.06)}
-  h2{margin:0;font-size:20px;letter-spacing:-.015em}
-  label{display:block;margin:0 0 6px;color:#344054;font-size:13px;font-weight:700}
+  .main-panel{padding:24px}
+  label{display:block;margin:0 0 6px;color:var(--ink-soft);font-size:13px;font-weight:600}
   input,select{
     width:100%;min-height:44px;padding:0 11px;border:1px solid var(--line-strong);
-    border-radius:8px;background:#fff;color:var(--ink);outline:none
+    border-radius:8px;background:var(--surface);color:var(--ink);outline:none
   }
   input:focus,select:focus,button:focus-visible,summary:focus-visible{
-    outline:3px solid rgba(31,101,166,.18);outline-offset:2px
+    outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px
   }
-  .period-nav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:end;margin-top:20px}
-  .period-nav .field{min-width:0}
+  .field-error{margin:6px 0 0;color:var(--off-ink);font-size:13px;font-weight:600}
+  [aria-invalid="true"]{border-color:var(--off-ink)}
+
+  .period-nav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
+  .period-nav .period-select{min-width:0;position:relative}
+  #guidePeriod{
+    padding:0 28px 0 2px;border:0;border-radius:8px;background:transparent;
+    font-size:20px;font-weight:600;letter-spacing:-.015em;appearance:none;text-overflow:ellipsis
+  }
+  .period-select::after{
+    content:"";position:absolute;right:8px;top:50%;width:8px;height:8px;pointer-events:none;
+    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:translateY(-70%) rotate(45deg)
+  }
   .nav-button{
     width:44px;height:44px;padding:0;border:1px solid var(--line-strong);
-    border-radius:8px;background:#fff;color:#344054;font-size:22px;line-height:1
+    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-size:22px;line-height:1
   }
-  .nav-button:hover:not(:disabled){background:#f8fafc}
+  .nav-button:hover:not(:disabled){background:var(--th-bg)}
   .nav-button:disabled{opacity:.35;cursor:not-allowed}
+
+  .week-tabs{display:none;gap:8px;margin-top:16px}
+  .week-tabs button{
+    flex:1;min-height:40px;border:1px solid var(--line-strong);border-radius:8px;
+    background:var(--surface);color:var(--ink-soft);font-weight:600;font-size:13px
+  }
+  .week-tabs button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+
   .guide{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
-  .guide-week h3{margin:0 0 10px;font-size:14px;color:#475467}
+  .guide-week h3{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:600}
   .guide-header,.guide-row{display:grid;grid-template-columns:66px 1fr 1fr;gap:6px}
-  .guide-header{margin-bottom:5px;color:var(--muted);font-size:11px;font-weight:750;text-align:center;text-transform:uppercase;letter-spacing:.04em}
+  .guide-header{margin-bottom:5px;color:var(--muted);font-size:12px;font-weight:600;text-align:center;text-transform:uppercase;letter-spacing:.04em}
   .guide-row{align-items:center;margin-bottom:6px}
-  .guide-day{font-weight:750;line-height:1.15}
-  .guide-date{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:550}
+  .guide-day{font-weight:700;line-height:1.15}
+  .guide-date{display:block;margin-top:3px;color:var(--muted);font-size:12px;font-weight:400}
+  .guide-row.is-today .guide-day::after{
+    content:"";display:inline-block;width:6px;height:6px;margin-left:6px;
+    border-radius:50%;background:var(--accent);vertical-align:2px
+  }
   .guide-value{
     min-width:0;min-height:44px;padding:9px 8px;display:flex;align-items:center;justify-content:space-between;
-    border:1px solid var(--line-strong);border-radius:8px;background:#fff;font-size:13px;font-weight:700
+    border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600
   }
-  .guide-row.is-off .guide-value{border-color:#edc5c2;background:var(--off);color:var(--off-ink);font-size:12px}
+  .guide-row.is-off .guide-value{border-color:color-mix(in srgb,var(--off-ink) 35%,transparent);background:var(--off);color:var(--off-ink)}
   .guide-note{margin:14px 0 0;color:var(--muted);font-size:13px;text-align:center}
-  .empty{margin:24px 0 0;padding:14px;border-radius:8px;background:#f8fafc;color:var(--muted)}
-  .error{display:none;margin:16px 0 0;padding:10px 12px;border:1px solid #edc5c2;border-radius:8px;background:var(--off);color:var(--off-ink)}
+  .empty{margin:24px 0 0;padding:14px;border-radius:8px;background:var(--th-bg);color:var(--muted)}
+
   details.panel{overflow:hidden}
   details.panel>summary{
     min-height:56px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-    gap:16px;cursor:pointer;font-weight:750;list-style:none
+    gap:16px;cursor:pointer;font-weight:600;list-style:none
   }
   details.panel>summary::-webkit-details-marker{display:none}
   details.panel>summary::after{content:"+";color:var(--muted);font-size:22px;font-weight:400}
   details.panel[open]>summary::after{content:"−"}
   details.panel[open]>summary{border-bottom:1px solid var(--line)}
+  .summary-meta{color:var(--muted);font-size:13px;font-weight:400;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .details-body{padding:20px}
+
   .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .full{grid-column:1/-1}
   .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -71,41 +103,46 @@
   .daycheck input{position:absolute;opacity:0;pointer-events:none}
   .daycheck label{
     margin:0;min-height:44px;padding:10px 2px;text-align:center;border:1px solid var(--line-strong);
-    border-radius:8px;cursor:pointer;background:#fff;font-size:13px
+    border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:400
   }
-  .daycheck input:checked+label{border-color:var(--accent);background:var(--accent);color:#fff}
-  .daycheck input:focus-visible+label{outline:3px solid rgba(31,101,166,.18);outline-offset:2px}
+  .daycheck input:checked+label{border-color:var(--accent);background:var(--accent);color:var(--on-accent);font-weight:600}
+  .daycheck input:focus-visible+label{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
   .help{margin:6px 0 0;color:var(--muted);font-size:12px}
+  .reset-row{margin-top:16px}
+  .link{background:none;border:0;padding:0;color:var(--accent);font-size:13px;font-weight:600;text-decoration:underline}
+  .link:hover{color:var(--accent-hover)}
+
   .schedule-tools{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px}
   .count-field{width:150px}
   .actions{display:flex;gap:8px}
   .secondary{
     min-height:44px;padding:0 14px;border:1px solid var(--line-strong);
-    border-radius:8px;background:#fff;color:#344054;font-weight:700
+    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-weight:600
   }
-  .secondary:hover{background:#f8fafc}
+  .secondary:hover{background:var(--th-bg)}
   .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-  th,td{padding:9px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
-  th{position:sticky;top:0;z-index:1;background:#285f91;color:#fff;font-size:12px}
-  th:first-child,td:first-child{position:sticky;left:0;z-index:2}
+  th,td{padding:9px 8px;border-bottom:1px solid var(--table-line);text-align:center;white-space:nowrap}
+  th+th,td+td{border-left:1px solid color-mix(in srgb,var(--table-line) 45%,transparent)}
+  th{position:sticky;top:0;z-index:1;background:var(--th-bg);color:var(--ink-soft);font-size:12px;font-weight:600}
+  th:first-child,td:first-child{position:sticky;left:0;z-index:2;border-right:1px solid var(--table-line)}
   th:first-child{z-index:3}
   tr:last-child td{border-bottom:0}
-  th:last-child,td:last-child{border-right:0}
-  td.period{text-align:left;font-weight:700;background:#fff}
-  td.off{background:var(--off);font-weight:800}
+  td.period{text-align:left;font-weight:600;background:var(--surface)}
+  td.off{background:var(--off)}
   td.work{background:var(--work)}
-  .entry{display:block;font-size:14px;line-height:1.1}
-  .entrydate{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:600}
   .status{min-height:20px;margin:10px 0 0;color:var(--muted);font-size:13px}
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
   @media(max-width:560px){
     .wrap{width:min(100% - 20px,760px);padding:28px 0 44px}
     .main-panel{padding:18px 14px}
-    .guide,.setup-grid{grid-template-columns:1fr}
-    .guide{gap:20px}
+    .setup-grid{grid-template-columns:1fr}
     .full{grid-column:auto}
-    .days{grid-template-columns:repeat(4,1fr)}
+    .week-tabs{display:flex}
+    .guide{grid-template-columns:1fr;gap:0}
+    .guide:not(.show-w2) .guide-week:last-of-type{display:none}
+    .guide.show-w2 .guide-week:first-of-type{display:none}
     .schedule-tools{display:block}
     .count-field{width:100%;margin-bottom:12px}
     .actions{display:grid;grid-template-columns:1fr 1fr}
@@ -113,29 +150,29 @@
     .details-body{padding:16px 14px}
   }
   @media print{
-    body{background:#fff}.wrap{width:100%;padding:0}.main-panel,header,.setup-panel summary,.setup-panel .details-body,.schedule-panel summary,.schedule-tools,.status{display:none}
+    body{background:#fff}.wrap{width:100%;padding:0}
+    .main-panel,header,.week-tabs,.setup-panel summary,.setup-panel .details-body,.schedule-panel summary,.schedule-tools,.status{display:none}
     details.panel{border:0}details.panel>.details-body{display:block;padding:0}.tablewrap{border:0}
+    th,td{border-color:#999}th{background:#f1f4f7;color:#182230}
   }
 </style>
 </head>
 <body>
+<h1 class="visually-hidden">Rotating days off</h1>
 <div class="wrap">
-  <header>
-    <h1>Rotating days off</h1>
-    <p class="lead">See what to enter for each pay period.</p>
-  </header>
-
   <main class="stack">
-    <section class="panel main-panel" aria-labelledby="guideHeading">
-      <h2 id="guideHeading">This pay period</h2>
-
+    <section class="panel main-panel" aria-label="This pay period">
       <div class="period-nav">
         <button class="nav-button" id="previousPeriod" type="button" aria-label="Previous pay period">‹</button>
-        <div class="field">
-          <label for="guidePeriod">Pay period</label>
-          <select id="guidePeriod"></select>
+        <div class="period-select">
+          <select id="guidePeriod" aria-label="Pay period"></select>
         </div>
         <button class="nav-button" id="nextPeriod" type="button" aria-label="Next pay period">›</button>
+      </div>
+
+      <div class="week-tabs" aria-label="Choose week">
+        <button type="button" data-week="1" aria-pressed="true">Week 1</button>
+        <button type="button" data-week="2" aria-pressed="false">Week 2</button>
       </div>
 
       <div class="guide" id="guide">
@@ -150,22 +187,23 @@
           <div id="guideWeek2"></div>
         </section>
       </div>
-      <p class="guide-note">On days off, leave both internal system fields blank.</p>
-      <div class="error" id="error" role="alert"></div>
+      <p class="guide-note">Leave internal system fields blank on tinted days.</p>
     </section>
 
     <details class="panel setup-panel" id="setupPanel">
-      <summary>Edit schedule setup</summary>
+      <summary>Edit schedule setup<span class="summary-meta" id="setupMeta"></span></summary>
       <div class="details-body">
         <div class="setup-grid">
           <div>
             <label for="anchorMonth">Month these days off apply to</label>
-            <input id="anchorMonth" type="month" value="2026-07">
+            <input id="anchorMonth" type="month">
+            <p class="field-error" id="anchorMonthError" role="alert" hidden></p>
           </div>
           <div>
             <label for="firstPeriod">First pay period starts</label>
-            <input id="firstPeriod" type="date" value="2026-07-27">
+            <input id="firstPeriod" type="date">
             <p class="help">This date must be a Monday.</p>
+            <p class="field-error" id="firstPeriodError" role="alert" hidden></p>
           </div>
           <div>
             <label for="workCode">Shift</label>
@@ -178,27 +216,32 @@
           <div class="full">
             <label>Days off that month</label>
             <div class="days" id="dayChecks">
-              <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
               <div class="daycheck"><input type="checkbox" id="d1" checked><label for="d1">Mon</label></div>
               <div class="daycheck"><input type="checkbox" id="d2"><label for="d2">Tue</label></div>
               <div class="daycheck"><input type="checkbox" id="d3"><label for="d3">Wed</label></div>
               <div class="daycheck"><input type="checkbox" id="d4"><label for="d4">Thu</label></div>
               <div class="daycheck"><input type="checkbox" id="d5"><label for="d5">Fri</label></div>
               <div class="daycheck"><input type="checkbox" id="d6" checked><label for="d6">Sat</label></div>
+              <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
             </div>
+            <p class="field-error" id="daysError" role="alert" hidden></p>
             <p class="help">The days off move forward one weekday each month.</p>
           </div>
+        </div>
+        <div class="reset-row">
+          <button class="link" id="resetDefaults" type="button">Reset to defaults</button>
         </div>
       </div>
     </details>
 
     <details class="panel schedule-panel" id="schedulePanel">
-      <summary>Full schedule and export</summary>
+      <summary>Full schedule and export<span class="summary-meta" id="scheduleMeta"></span></summary>
       <div class="details-body">
         <div class="schedule-tools">
           <div class="count-field">
             <label for="periodCount">Periods to show</label>
             <input id="periodCount" type="number" min="1" max="40" value="12">
+            <p class="field-error" id="periodCountError" role="alert" hidden></p>
           </div>
           <div class="actions">
             <button class="secondary" id="copyAll" type="button">Copy schedule</button>
@@ -210,8 +253,8 @@
             <thead>
               <tr>
                 <th>Period</th>
-                <th>MON1</th><th>TUE1</th><th>WED1</th><th>THR1</th><th>FRI1</th><th>SAT1</th><th>SUN1</th>
-                <th>MON2</th><th>TUE2</th><th>WED2</th><th>THR2</th><th>FRI2</th><th>SAT2</th><th>SUN2</th>
+                <th>Mon 1</th><th>Tue 1</th><th>Wed 1</th><th>Thu 1</th><th>Fri 1</th><th>Sat 1</th><th>Sun 1</th>
+                <th>Mon 2</th><th>Tue 2</th><th>Wed 2</th><th>Thu 2</th><th>Fri 2</th><th>Sat 2</th><th>Sun 2</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -226,6 +269,7 @@
 
 <script>
 const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const shortNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const storageKey = "rotating-days-off-settings";
 let generatedPeriods = [];
 
@@ -237,6 +281,29 @@ function addDays(date,days){
   const result = new Date(date);
   result.setDate(result.getDate()+days);
   return result;
+}
+function isoDate(date){
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+function defaultSettings(){
+  const today = new Date();
+  const daysUntilMonday = today.getDay()===1 ? 0 : (8-today.getDay())%7;
+  const monday = addDays(today,daysUntilMonday);
+  return {
+    anchorMonth:`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`,
+    firstPeriod:isoDate(monday),
+    periodCount:"12",
+    workCode:"D10",
+    days:[0,1,6]
+  };
+}
+function applyDefaults(){
+  const settings = defaultSettings();
+  document.getElementById("anchorMonth").value = settings.anchorMonth;
+  document.getElementById("firstPeriod").value = settings.firstPeriod;
+  document.getElementById("periodCount").value = settings.periodCount;
+  document.getElementById("workCode").value = settings.workCode;
+  for(let i=0;i<7;i++) document.getElementById(`d${i}`).checked = settings.days.includes(i);
 }
 function monthDiff(aY,aM,bY,bM){
   return (bY-aY)*12+(bM-aM);
@@ -283,7 +350,7 @@ function saveSettings(){
 function loadSettings(){
   try{
     const settings = JSON.parse(localStorage.getItem(storageKey));
-    if(!settings) return;
+    if(!settings){ applyDefaults(); return; }
     if(settings.anchorMonth) document.getElementById("anchorMonth").value=settings.anchorMonth;
     if(settings.firstPeriod) document.getElementById("firstPeriod").value=settings.firstPeriod;
     if(settings.periodCount) document.getElementById("periodCount").value=settings.periodCount;
@@ -293,7 +360,38 @@ function loadSettings(){
     }
   }catch(error){
     localStorage.removeItem(storageKey);
+    applyDefaults();
   }
+}
+function setFieldError(controlId,errorId,message){
+  const control = document.getElementById(controlId);
+  const error = document.getElementById(errorId);
+  if(message){
+    error.textContent = message;
+    error.hidden = false;
+    control.setAttribute("aria-invalid","true");
+  }else{
+    error.hidden = true;
+    control.removeAttribute("aria-invalid");
+  }
+  return Boolean(message);
+}
+function updateSummaryMeta(shift){
+  const anchor = document.getElementById("anchorMonth").value;
+  const count = Number(document.getElementById("periodCount").value);
+  const baseDays = selectedDays();
+  const setupMeta = document.getElementById("setupMeta");
+  const scheduleMeta = document.getElementById("scheduleMeta");
+
+  if(anchor && baseDays.length>0 && shift){
+    const [y,m] = anchor.split("-").map(Number);
+    const monthLabel = new Date(y,m-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});
+    const dayLabel = [1,2,3,4,5,6,0].filter(d=>baseDays.includes(d)).map(d=>shortNames[d]).join(" ");
+    setupMeta.textContent = `${shift} · ${dayLabel} · from ${monthLabel}`;
+  }else{
+    setupMeta.textContent = "";
+  }
+  scheduleMeta.textContent = count>=1 && count<=40 ? `${count} periods` : "";
 }
 function renderGuide(){
   const select = document.getElementById("guidePeriod");
@@ -315,21 +413,23 @@ function renderGuide(){
     return;
   }
 
+  const today = new Date();
   period.vals.forEach((value,i)=>{
     const date = addDays(period.start,i);
     const isOff = value===period.off;
+    const isToday = date.getFullYear()===today.getFullYear()&&date.getMonth()===today.getMonth()&&date.getDate()===today.getDate();
     const row = document.createElement("div");
-    row.className = `guide-row${isOff ? " is-off" : ""}`;
+    row.className = `guide-row${isOff ? " is-off" : ""}${isToday ? " is-today" : ""}`;
+    if(isToday) row.title = "Today";
     row.innerHTML = `
       <div class="guide-day">${dayNames[date.getDay()].slice(0,3)}<span class="guide-date">${compactDate(date)}</span></div>
-      <div class="guide-value">${isOff ? "Leave blank" : period.shift}</div>
-      <div class="guide-value">${isOff ? "Leave blank" : "10 Hours"}</div>
+      <div class="guide-value">${isOff ? "—" : period.shift}</div>
+      <div class="guide-value">${isOff ? "—" : "10 Hours"}</div>
     `;
     (i<7 ? week1 : week2).appendChild(row);
   });
 }
 function generate(keepSelection=true){
-  const errorBox = document.getElementById("error");
   const anchor = document.getElementById("anchorMonth").value;
   const startValue = document.getElementById("firstPeriod").value;
   const count = Number(document.getElementById("periodCount").value);
@@ -339,28 +439,34 @@ function generate(keepSelection=true){
   const baseDays = selectedDays();
   const previousSelection = keepSelection ? Number(document.getElementById("guidePeriod").value)||0 : 0;
 
-  errorBox.style.display = "none";
-  errorBox.textContent = "";
+  let anchorError = setFieldError("anchorMonth","anchorMonthError", anchor ? "" : "Choose a month.");
+  let startError = "";
+  if(!startValue){
+    startError = "Choose a start date.";
+  }else if(localDate(startValue).getDay()!==1){
+    startError = "The first pay period must start on a Monday.";
+  }
+  const firstPeriodError = setFieldError("firstPeriod","firstPeriodError",startError);
+  const countError = setFieldError("periodCount","periodCountError",
+    (!count||count<1||count>40) ? "Enter a number from 1 to 40." : "");
+  const daysError = setFieldError("dayChecks","daysError",
+    baseDays.length===0 ? "Pick at least one day off." : "");
 
-  if(!anchor||!startValue||!count||baseDays.length===0){
-    errorBox.textContent = "Choose a month, a starting pay period, and at least one day off.";
-    errorBox.style.display = "block";
+  if(anchorError||firstPeriodError||daysError) document.getElementById("setupPanel").open = true;
+  if(countError) document.getElementById("schedulePanel").open = true;
+
+  updateSummaryMeta(anchorError||firstPeriodError||daysError||countError ? "" : shift);
+
+  if(anchorError||firstPeriodError||countError||daysError){
     generatedPeriods = [];
-    document.getElementById("guidePeriod").innerHTML = "<option>Schedule needs attention</option>";
+    const guideSelect = document.getElementById("guidePeriod");
+    guideSelect.innerHTML = "<option value=\"\">Nothing scheduled</option>";
     renderGuide();
     return;
   }
 
   const [anchorY,anchorMonth] = anchor.split("-").map(Number);
   const first = localDate(startValue);
-  if(first.getDay()!==1){
-    errorBox.textContent = "The first pay period must start on a Monday.";
-    errorBox.style.display = "block";
-    generatedPeriods = [];
-    document.getElementById("guidePeriod").innerHTML = "<option>Schedule needs attention</option>";
-    renderGuide();
-    return;
-  }
 
   generatedPeriods = [];
   const tableBody = document.querySelector("#scheduleTable tbody");
@@ -380,12 +486,13 @@ function generate(keepSelection=true){
     for(let dayIndex=0;dayIndex<14;dayIndex++){
       const date = addDays(periodStart,dayIndex);
       const offDays = rotatedOffDays(date,anchorY,anchorMonth-1,baseDays);
-      const value = offDays.has(date.getDay()) ? "X" : work;
+      const isOff = offDays.has(date.getDay());
+      const value = isOff ? "X" : work;
       values.push(value);
 
       const cell = document.createElement("td");
-      cell.className = value==="X" ? "off" : "work";
-      cell.innerHTML = `<span class="entry">${value}</span><span class="entrydate">${compactDate(date)}</span>`;
+      cell.className = isOff ? "off" : "work";
+      cell.textContent = isOff ? "" : value;
       cell.title = `${dayNames[date.getDay()]} ${numericDate(date)}`;
       row.appendChild(cell);
     }
@@ -421,6 +528,11 @@ generate(false);
 document.querySelectorAll("#setupPanel input, #setupPanel select, #periodCount").forEach(control=>{
   control.addEventListener("change",()=>generate());
 });
+document.getElementById("resetDefaults").addEventListener("click",()=>{
+  localStorage.removeItem(storageKey);
+  applyDefaults();
+  generate(false);
+});
 document.getElementById("guidePeriod").addEventListener("change",renderGuide);
 document.getElementById("previousPeriod").addEventListener("click",()=>{
   const select = document.getElementById("guidePeriod");
@@ -431,6 +543,15 @@ document.getElementById("nextPeriod").addEventListener("click",()=>{
   const select = document.getElementById("guidePeriod");
   select.value = Math.min(generatedPeriods.length-1,Number(select.value)+1);
   renderGuide();
+});
+document.querySelectorAll(".week-tabs button").forEach(button=>{
+  button.addEventListener("click",()=>{
+    const showWeek2 = button.dataset.week==="2";
+    document.getElementById("guide").classList.toggle("show-w2",showWeek2);
+    document.querySelectorAll(".week-tabs button").forEach(b=>{
+      b.setAttribute("aria-pressed",String(b===button));
+    });
+  });
 });
 document.getElementById("copyAll").addEventListener("click",async()=>{
   const status = document.getElementById("copyStatus");
