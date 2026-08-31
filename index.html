@@ -3,156 +3,170 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rotating Days-Off Schedule Helper</title>
+<title>Rotating Days Off</title>
 <style>
   :root{
-    --bg:#f6f7f9; --surface:#fff; --ink:#182230; --muted:#667085;
-    --line:#e2e6eb; --line-strong:#c8d0da; --accent:#1f65a6;
-    --accent-soft:#eef5fb; --off:#fff1f0; --off-ink:#a12a27;
-    --work:#f0f8f2; --radius:12px;
+    --bg:#f5f7f9; --surface:#fff; --ink:#182230; --muted:#667085;
+    --line:#dfe4ea; --line-strong:#c7d0da; --accent:#1f65a6;
+    --accent-hover:#18578f; --accent-soft:#eef5fb; --off:#fff1f0;
+    --off-ink:#922c28; --work:#eef7f0; --radius:12px;
   }
   *{box-sizing:border-box}
-  body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:1240px;margin:0 auto;padding:44px 24px 64px}
-  .masthead{margin-bottom:28px}
-  .eyebrow{margin:0 0 6px;color:var(--accent);font-size:12px;font-weight:750;letter-spacing:.09em;text-transform:uppercase}
-  h1{margin:0;font-size:clamp(26px,4vw,36px);line-height:1.15;letter-spacing:-.035em}
-  .lead{max-width:680px;margin:9px 0 0;color:var(--muted);font-size:16px}
-  .stack{display:grid;gap:18px}
+  body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+  .wrap{width:min(100% - 32px,760px);margin:0 auto;padding:48px 0 64px}
+  header{margin-bottom:24px}
+  h1{margin:0;font-size:clamp(28px,6vw,38px);line-height:1.15;letter-spacing:-.035em}
+  .lead{margin:8px 0 0;color:var(--muted)}
+  .stack{display:grid;gap:16px}
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
-  .panel-pad{padding:22px}
-  .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
-  .section-head h2{font-size:18px;line-height:1.3;margin:0;letter-spacing:-.01em}
-  .section-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
-  label{display:block;margin:0 0 6px;font-size:13px;font-weight:700;color:#344054}
-  input,select,button{font:inherit}
-  input,select{width:100%;height:42px;padding:0 11px;border:1px solid var(--line-strong);border-radius:8px;background:#fff;color:var(--ink);outline:none}
-  input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(31,101,166,.12)}
-  .config-grid{display:grid;grid-template-columns:1.1fr .9fr .7fr;gap:18px;align-items:end}
-  .day-field{grid-column:span 2}
-  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .main-panel{padding:24px;box-shadow:0 8px 28px rgba(16,24,40,.06)}
+  h2{margin:0;font-size:20px;letter-spacing:-.015em}
+  label{display:block;margin:0 0 6px;color:#344054;font-size:13px;font-weight:700}
+  input,select{
+    width:100%;min-height:44px;padding:0 11px;border:1px solid var(--line-strong);
+    border-radius:8px;background:#fff;color:var(--ink);outline:none
+  }
+  input:focus,select:focus,button:focus-visible,summary:focus-visible{
+    outline:3px solid rgba(31,101,166,.18);outline-offset:2px
+  }
+  .period-nav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:end;margin-top:20px}
+  .period-nav .field{min-width:0}
+  .nav-button{
+    width:44px;height:44px;padding:0;border:1px solid var(--line-strong);
+    border-radius:8px;background:#fff;color:#344054;font-size:22px;line-height:1
+  }
+  .nav-button:hover:not(:disabled){background:#f8fafc}
+  .nav-button:disabled{opacity:.35;cursor:not-allowed}
+  .guide{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+  .guide-week h3{margin:0 0 10px;font-size:14px;color:#475467}
+  .guide-header,.guide-row{display:grid;grid-template-columns:66px 1fr 1fr;gap:6px}
+  .guide-header{margin-bottom:5px;color:var(--muted);font-size:11px;font-weight:750;text-align:center;text-transform:uppercase;letter-spacing:.04em}
+  .guide-row{align-items:center;margin-bottom:6px}
+  .guide-day{font-weight:750;line-height:1.15}
+  .guide-date{display:block;margin-top:3px;color:var(--muted);font-size:11px;font-weight:550}
+  .guide-value{
+    min-width:0;min-height:44px;padding:9px 8px;display:flex;align-items:center;justify-content:space-between;
+    border:1px solid var(--line-strong);border-radius:8px;background:#fff;font-size:13px;font-weight:700
+  }
+  .guide-row.is-off .guide-value{border-color:#edc5c2;background:var(--off);color:var(--off-ink);font-size:12px}
+  .guide-note{margin:14px 0 0;color:var(--muted);font-size:13px;text-align:center}
+  .empty{margin:24px 0 0;padding:14px;border-radius:8px;background:#f8fafc;color:var(--muted)}
+  .error{display:none;margin:16px 0 0;padding:10px 12px;border:1px solid #edc5c2;border-radius:8px;background:var(--off);color:var(--off-ink)}
+  details.panel{overflow:hidden}
+  details.panel>summary{
+    min-height:56px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+    gap:16px;cursor:pointer;font-weight:750;list-style:none
+  }
+  details.panel>summary::-webkit-details-marker{display:none}
+  details.panel>summary::after{content:"+";color:var(--muted);font-size:22px;font-weight:400}
+  details.panel[open]>summary::after{content:"−"}
+  details.panel[open]>summary{border-bottom:1px solid var(--line)}
+  .details-body{padding:20px}
+  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .full{grid-column:1/-1}
+  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
   .daycheck{position:relative}
   .daycheck input{position:absolute;opacity:0;pointer-events:none}
-  .daycheck label{margin:0;padding:10px 4px;text-align:center;border:1px solid var(--line-strong);border-radius:8px;cursor:pointer;font-weight:650;background:#fff}
-  .daycheck input:checked+label{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .daycheck input:focus-visible+label{box-shadow:0 0 0 3px rgba(31,101,166,.16)}
-  .actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-  button{height:42px;border:1px solid transparent;border-radius:8px;padding:0 15px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .primary{background:var(--accent);color:#fff}
-  .primary:hover{background:#18578f}
-  .secondary{background:#fff;color:#344054;border-color:var(--line-strong)}
+  .daycheck label{
+    margin:0;min-height:44px;padding:10px 2px;text-align:center;border:1px solid var(--line-strong);
+    border-radius:8px;cursor:pointer;background:#fff;font-size:13px
+  }
+  .daycheck input:checked+label{border-color:var(--accent);background:var(--accent);color:#fff}
+  .daycheck input:focus-visible+label{outline:3px solid rgba(31,101,166,.18);outline-offset:2px}
+  .help{margin:6px 0 0;color:var(--muted);font-size:12px}
+  .schedule-tools{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .count-field{width:150px}
+  .actions{display:flex;gap:8px}
+  .secondary{
+    min-height:44px;padding:0 14px;border:1px solid var(--line-strong);
+    border-radius:8px;background:#fff;color:#344054;font-weight:700
+  }
   .secondary:hover{background:#f8fafc}
-  details{margin-top:16px;border-top:1px solid var(--line);padding-top:13px}
-  summary{width:max-content;color:var(--muted);font-size:13px;font-weight:650;cursor:pointer}
-  .advanced{max-width:240px;margin-top:13px}
-  .help{font-size:12px;color:var(--muted);margin-top:6px}
-  .error{display:none;background:var(--off);color:var(--off-ink);border:1px solid #f3c3c0;padding:10px 12px;border-radius:8px;margin-top:14px}
-  .focus-panel{border-color:#d5dce4;box-shadow:0 8px 30px rgba(16,24,40,.06)}
-  .guide-intro{margin:-4px 0 18px;padding:10px 12px;background:var(--accent-soft);border-radius:8px;color:#36546f;font-size:13px}
-  .entryguide{max-width:980px;margin:0 auto}
-  .guideperiods{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:22px}
-  .guideweeks{display:grid;grid-template-columns:1fr 1fr;gap:34px}
-  .guideweek h3{margin:0 0 9px;font-size:14px;color:#475467}
-  .guiderow{display:grid;grid-template-columns:74px 1fr 1fr;align-items:center;gap:6px;margin:6px 0}
-  .guideday{text-align:right;padding-right:5px;font-weight:750;line-height:1.2}
-  .guidedate{display:block;margin-top:2px;font-size:11px;color:var(--muted);font-weight:550}
-  .guidebox{min-height:42px;padding:9px 11px;border:1px solid var(--line-strong);border-radius:7px;background:#fff;font-weight:650;display:flex;align-items:center;justify-content:space-between}
-  .guidebox::after{content:"▾";font-size:10px;color:#667085}
-  .guiderow.isoff .guidebox{background:var(--off);border-color:#ecc5c2;color:var(--off-ink);font-size:13px}
-  .guiderow.isoff .guidebox::after{color:var(--off-ink)}
-  .guidelegend{text-align:center;margin:18px 0 0;font-size:12px;color:var(--muted)}
-  .table-panel{overflow:hidden}
-  .table-panel .section-head{padding:20px 22px 0;margin-bottom:14px}
-  .table-actions{display:flex;gap:8px}
-  .table-actions button{height:36px;padding:0 12px;font-size:13px}
-  .notice{margin:0 22px 16px;padding:10px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:6px;color:#36546f;font-size:13px}
-  .tablewrap{overflow:auto;border-top:1px solid var(--line)}
+  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
   th,td{padding:9px 8px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
-  th{background:#285f91;color:#fff;position:sticky;top:0;z-index:1;font-size:12px;letter-spacing:.015em}
+  th{position:sticky;top:0;z-index:1;background:#285f91;color:#fff;font-size:12px}
   th:first-child,td:first-child{position:sticky;left:0;z-index:2}
   th:first-child{z-index:3}
+  tr:last-child td{border-bottom:0}
+  th:last-child,td:last-child{border-right:0}
   td.period{text-align:left;font-weight:700;background:#fff}
   td.off{background:var(--off);font-weight:800}
   td.work{background:var(--work)}
   .entry{display:block;font-size:14px;line-height:1.1}
-  .entrydate{display:block;margin-top:4px;font-size:10px;font-weight:600;color:#667085}
-  td.off .entrydate{color:#963a36}
+  .entrydate{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:600}
+  .status{min-height:20px;margin:10px 0 0;color:var(--muted);font-size:13px}
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
-  @media(max-width:900px){
-    .config-grid{grid-template-columns:1fr 1fr}.config-grid .day-field{grid-column:1/-1}.actions{justify-content:flex-start}
-    .guideweeks{gap:18px}.guiderow{grid-template-columns:62px 1fr 1fr}
-  }
-  @media(max-width:650px){
-    .wrap{padding:28px 10px 44px}.panel-pad{padding:16px 12px}.masthead{margin:0 4px 22px}
-    .config-grid,.guideweeks,.guideperiods,.advanced{grid-template-columns:1fr}.config-grid{gap:14px}
-    .days{grid-template-columns:repeat(7,minmax(38px,1fr));overflow-x:auto;padding-bottom:2px}
-    .guideperiods{gap:12px;margin-bottom:20px}.guideweeks{gap:24px}
-    .guiderow{grid-template-columns:48px minmax(0,1fr) minmax(0,1fr);gap:5px}
-    .guidebox{padding:8px;font-size:13px}.guiderow.isoff .guidebox{font-size:12px}
-    .section-head{display:block}.actions .primary{width:100%}
-    .table-panel .section-head{padding:16px 12px 0}.table-actions{margin-top:12px}.notice{margin:0 12px 14px}
-    th,td{padding:8px 7px}
-  }
-  @media(max-width:350px){
-    .days{grid-template-columns:repeat(4,1fr);overflow:visible}
+  @media(max-width:560px){
+    .wrap{width:min(100% - 20px,760px);padding:28px 0 44px}
+    .main-panel{padding:18px 14px}
+    .guide,.setup-grid{grid-template-columns:1fr}
+    .guide{gap:20px}
+    .full{grid-column:auto}
+    .days{grid-template-columns:repeat(4,1fr)}
+    .schedule-tools{display:block}
+    .count-field{width:100%;margin-bottom:12px}
+    .actions{display:grid;grid-template-columns:1fr 1fr}
+    details.panel>summary{padding:15px 14px}
+    .details-body{padding:16px 14px}
   }
   @media print{
-    body{background:#fff}.wrap{max-width:none;padding:0}.masthead{margin-bottom:16px}.panel{break-inside:avoid}.setup-panel,.table-actions,.lead{display:none}.focus-panel{box-shadow:none}
+    body{background:#fff}.wrap{width:100%;padding:0}.main-panel,header,.setup-panel summary,.setup-panel .details-body,.schedule-panel summary,.schedule-tools,.status{display:none}
+    details.panel{border:0}details.panel>.details-body{display:block;padding:0}.tablewrap{border:0}
   }
 </style>
 </head>
 <body>
-<noscript><div style="padding:16px;background:#fff3cd;color:#7a5d00;font-family:Arial">JavaScript is disabled in this preview. Download this file and open it directly in Chrome, Edge, or Safari.</div></noscript>
 <div class="wrap">
-  <header class="masthead">
-    <p class="eyebrow">Schedule helper</p>
+  <header>
     <h1>Rotating days off</h1>
-    <p class="lead">Set the rotation once, then use the entry guide to complete each two-week period.</p>
+    <p class="lead">See what to enter for each pay period.</p>
   </header>
 
   <main class="stack">
-    <section class="panel panel-pad setup-panel">
-      <div class="section-head">
-        <div>
-          <h2>Schedule setup</h2>
-          <p>Days off move forward one weekday each month.</p>
+    <section class="panel main-panel" aria-labelledby="guideHeading">
+      <h2 id="guideHeading">This pay period</h2>
+
+      <div class="period-nav">
+        <button class="nav-button" id="previousPeriod" type="button" aria-label="Previous pay period">‹</button>
+        <div class="field">
+          <label for="guidePeriod">Pay period</label>
+          <select id="guidePeriod"></select>
         </div>
+        <button class="nav-button" id="nextPeriod" type="button" aria-label="Next pay period">›</button>
       </div>
 
-      <div class="config-grid">
-        <div>
-          <label for="anchorMonth">Starting month</label>
-          <input id="anchorMonth" type="month" value="2026-07">
-        </div>
-        <div>
-          <label for="firstPeriod">First pay-period Monday</label>
-          <input id="firstPeriod" type="date" value="2026-07-27">
-        </div>
-        <div>
-          <label for="periodCount">Number of periods</label>
-          <input id="periodCount" type="number" min="1" max="40" value="12">
-        </div>
-        <div class="day-field">
-          <label>Days off in the starting month</label>
-          <div class="days" id="dayChecks">
-            <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
-            <div class="daycheck"><input type="checkbox" id="d1" checked><label for="d1">Mon</label></div>
-            <div class="daycheck"><input type="checkbox" id="d2"><label for="d2">Tue</label></div>
-            <div class="daycheck"><input type="checkbox" id="d3"><label for="d3">Wed</label></div>
-            <div class="daycheck"><input type="checkbox" id="d4"><label for="d4">Thu</label></div>
-            <div class="daycheck"><input type="checkbox" id="d5"><label for="d5">Fri</label></div>
-            <div class="daycheck"><input type="checkbox" id="d6" checked><label for="d6">Sat</label></div>
+      <div class="guide" id="guide">
+        <section class="guide-week" aria-labelledby="weekOneHeading">
+          <h3 id="weekOneHeading">First week</h3>
+          <div class="guide-header" aria-hidden="true"><span></span><span>Shift</span><span>Hours</span></div>
+          <div id="guideWeek1"></div>
+        </section>
+        <section class="guide-week" aria-labelledby="weekTwoHeading">
+          <h3 id="weekTwoHeading">Second week</h3>
+          <div class="guide-header" aria-hidden="true"><span></span><span>Shift</span><span>Hours</span></div>
+          <div id="guideWeek2"></div>
+        </section>
+      </div>
+      <p class="guide-note">On days off, leave both internal system fields blank.</p>
+      <div class="error" id="error" role="alert"></div>
+    </section>
+
+    <details class="panel setup-panel" id="setupPanel">
+      <summary>Edit schedule setup</summary>
+      <div class="details-body">
+        <div class="setup-grid">
+          <div>
+            <label for="anchorMonth">Month these days off apply to</label>
+            <input id="anchorMonth" type="month" value="2026-07">
           </div>
-        </div>
-        <div class="actions">
-          <button class="primary" id="generate">Generate schedule</button>
-        </div>
-      </div>
-
-      <details>
-        <summary>Entry code settings</summary>
-        <div class="advanced">
+          <div>
+            <label for="firstPeriod">First pay period starts</label>
+            <input id="firstPeriod" type="date" value="2026-07-27">
+            <p class="help">This date must be a Monday.</p>
+          </div>
           <div>
             <label for="workCode">Shift</label>
             <select id="workCode">
@@ -161,240 +175,273 @@
               <option value="M10">Mids</option>
             </select>
           </div>
+          <div class="full">
+            <label>Days off that month</label>
+            <div class="days" id="dayChecks">
+              <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
+              <div class="daycheck"><input type="checkbox" id="d1" checked><label for="d1">Mon</label></div>
+              <div class="daycheck"><input type="checkbox" id="d2"><label for="d2">Tue</label></div>
+              <div class="daycheck"><input type="checkbox" id="d3"><label for="d3">Wed</label></div>
+              <div class="daycheck"><input type="checkbox" id="d4"><label for="d4">Thu</label></div>
+              <div class="daycheck"><input type="checkbox" id="d5"><label for="d5">Fri</label></div>
+              <div class="daycheck"><input type="checkbox" id="d6" checked><label for="d6">Sat</label></div>
+            </div>
+            <p class="help">The days off move forward one weekday each month.</p>
+          </div>
         </div>
-      </details>
-      <div class="error" id="error"></div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel panel-pad focus-panel">
-      <div class="section-head">
-        <div>
-          <h2>What to enter</h2>
-          <p>Select a pay period, then copy each day into the work system.</p>
-        </div>
-      </div>
-      <div class="guide-intro" id="guideIntro">Work days use <strong>Days + 10 Hours</strong>. On days off, leave both dropdowns blank.</div>
-      <div class="entryguide">
-        <div class="guideperiods">
-          <div>
-            <label for="guidePeriod">From period</label>
-            <select id="guidePeriod"></select>
+    <details class="panel schedule-panel" id="schedulePanel">
+      <summary>Full schedule and export</summary>
+      <div class="details-body">
+        <div class="schedule-tools">
+          <div class="count-field">
+            <label for="periodCount">Periods to show</label>
+            <input id="periodCount" type="number" min="1" max="40" value="12">
           </div>
-          <div>
-            <label for="guidePeriodDisplay">To period</label>
-            <input id="guidePeriodDisplay" readonly>
+          <div class="actions">
+            <button class="secondary" id="copyAll" type="button">Copy schedule</button>
+            <button class="secondary" id="printSchedule" type="button">Print</button>
           </div>
         </div>
-        <div class="guideweeks">
-          <div class="guideweek">
-            <h3>First week</h3>
-            <div id="guideWeek1"></div>
-          </div>
-          <div class="guideweek">
-            <h3>Second week</h3>
-            <div id="guideWeek2"></div>
-          </div>
+        <div class="tablewrap">
+          <table id="scheduleTable">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>MON1</th><th>TUE1</th><th>WED1</th><th>THR1</th><th>FRI1</th><th>SAT1</th><th>SUN1</th>
+                <th>MON2</th><th>TUE2</th><th>WED2</th><th>THR2</th><th>FRI2</th><th>SAT2</th><th>SUN2</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-        <p class="guidelegend"><strong>Leave blank</strong> means do not select anything in either work-system dropdown.</p>
+        <p class="status" id="copyStatus" aria-live="polite"></p>
       </div>
-    </section>
-
-    <section class="panel table-panel">
-      <div class="section-head">
-        <div>
-          <h2>Full schedule</h2>
-          <p>All generated periods. Swipe sideways to view every day.</p>
-        </div>
-        <div class="table-actions">
-          <button class="secondary" id="copyAll">Copy all rows</button>
-          <button class="secondary" onclick="window.print()">Print</button>
-        </div>
-      </div>
-      <div class="tablewrap">
-        <table id="scheduleTable">
-          <thead>
-            <tr>
-              <th>Period</th>
-              <th>MON1</th><th>TUE1</th><th>WED1</th><th>THR1</th><th>FRI1</th><th>SAT1</th><th>SUN1</th>
-              <th>MON2</th><th>TUE2</th><th>WED2</th><th>THR2</th><th>FRI2</th><th>SAT2</th><th>SUN2</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+    </details>
     <div class="visually-hidden" id="copyText">No rows generated yet.</div>
   </main>
 </div>
 
 <script>
-const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-let generatedPeriods=[];
+const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const storageKey = "rotating-days-off-settings";
+let generatedPeriods = [];
 
 function localDate(value){
   const [y,m,d] = value.split("-").map(Number);
   return new Date(y,m-1,d);
 }
-function ymd(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-function mdy(d){
-  return `${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}-${d.getFullYear()}`;
-}
-function addDays(d,n){
-  const x=new Date(d); x.setDate(x.getDate()+n); return x;
+function addDays(date,days){
+  const result = new Date(date);
+  result.setDate(result.getDate()+days);
+  return result;
 }
 function monthDiff(aY,aM,bY,bM){
   return (bY-aY)*12+(bM-aM);
 }
-function effectiveRotationMonth(date, rule){
-  if(rule==="firstDay") return {y:date.getFullYear(),m:date.getMonth()};
-  if(rule==="firstMonday"){
-    const first = new Date(date.getFullYear(),date.getMonth(),1);
-    const delta = (8-first.getDay())%7;
-    const switchDate = addDays(first,delta);
-    if(date < switchDate){
-      const prev = new Date(date.getFullYear(),date.getMonth()-1,1);
-      return {y:prev.getFullYear(),m:prev.getMonth()};
-    }
-    return {y:date.getFullYear(),m:date.getMonth()};
-  }
-  // Monday of the week containing the first:
-  // The next month's rotation can begin during the final days of this month.
-  const nextFirst = new Date(date.getFullYear(),date.getMonth()+1,1);
-  const nextSwitch = addDays(nextFirst, -((nextFirst.getDay()+6)%7));
-  if(date >= nextSwitch) return {y:nextFirst.getFullYear(),m:nextFirst.getMonth()};
-  const currentFirst = new Date(date.getFullYear(),date.getMonth(),1);
-  const currentSwitch = addDays(currentFirst, -((currentFirst.getDay()+6)%7));
-  if(date >= currentSwitch) return {y:date.getFullYear(),m:date.getMonth()};
-  const prev = new Date(date.getFullYear(),date.getMonth()-1,1);
-  return {y:prev.getFullYear(),m:prev.getMonth()};
+function shortDate(date){
+  return date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
 }
-function rotatedOffDays(date, anchorY, anchorM, baseDays, direction, rule){
-  const eff=effectiveRotationMonth(date,rule);
-  const shifts=monthDiff(anchorY,anchorM,eff.y,eff.m)*direction;
-  return new Set(baseDays.map(d=>((d+shifts)%7+7)%7));
+function compactDate(date){
+  return `${date.getMonth()+1}/${date.getDate()}`;
+}
+function numericDate(date){
+  return `${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}-${date.getFullYear()}`;
+}
+function effectiveRotationMonth(date){
+  const nextFirst = new Date(date.getFullYear(),date.getMonth()+1,1);
+  const nextSwitch = addDays(nextFirst,-((nextFirst.getDay()+6)%7));
+  if(date>=nextSwitch) return {y:nextFirst.getFullYear(),m:nextFirst.getMonth()};
+
+  const currentFirst = new Date(date.getFullYear(),date.getMonth(),1);
+  const currentSwitch = addDays(currentFirst,-((currentFirst.getDay()+6)%7));
+  if(date>=currentSwitch) return {y:date.getFullYear(),m:date.getMonth()};
+
+  const previous = new Date(date.getFullYear(),date.getMonth()-1,1);
+  return {y:previous.getFullYear(),m:previous.getMonth()};
+}
+function rotatedOffDays(date,anchorY,anchorM,baseDays){
+  const effective = effectiveRotationMonth(date);
+  const shifts = monthDiff(anchorY,anchorM,effective.y,effective.m);
+  return new Set(baseDays.map(day=>((day+shifts)%7+7)%7));
+}
+function selectedDays(){
+  return Array.from({length:7},(_,i)=>i).filter(i=>document.getElementById(`d${i}`).checked);
+}
+function saveSettings(){
+  const settings = {
+    anchorMonth:document.getElementById("anchorMonth").value,
+    firstPeriod:document.getElementById("firstPeriod").value,
+    periodCount:document.getElementById("periodCount").value,
+    workCode:document.getElementById("workCode").value,
+    days:selectedDays()
+  };
+  localStorage.setItem(storageKey,JSON.stringify(settings));
+}
+function loadSettings(){
+  try{
+    const settings = JSON.parse(localStorage.getItem(storageKey));
+    if(!settings) return;
+    if(settings.anchorMonth) document.getElementById("anchorMonth").value=settings.anchorMonth;
+    if(settings.firstPeriod) document.getElementById("firstPeriod").value=settings.firstPeriod;
+    if(settings.periodCount) document.getElementById("periodCount").value=settings.periodCount;
+    if(settings.workCode) document.getElementById("workCode").value=settings.workCode;
+    if(Array.isArray(settings.days)){
+      for(let i=0;i<7;i++) document.getElementById(`d${i}`).checked=settings.days.includes(i);
+    }
+  }catch(error){
+    localStorage.removeItem(storageKey);
+  }
 }
 function renderGuide(){
-  const select=document.getElementById("guidePeriod");
-  const period=generatedPeriods[Number(select.value)||0];
-  const week1=document.getElementById("guideWeek1");
-  const week2=document.getElementById("guideWeek2");
-  week1.innerHTML="";
-  week2.innerHTML="";
+  const select = document.getElementById("guidePeriod");
+  const index = Number(select.value)||0;
+  const period = generatedPeriods[index];
+  const week1 = document.getElementById("guideWeek1");
+  const week2 = document.getElementById("guideWeek2");
+  week1.innerHTML = "";
+  week2.innerHTML = "";
+
+  document.getElementById("previousPeriod").disabled=!period||index===0;
+  document.getElementById("nextPeriod").disabled=!period||index===generatedPeriods.length-1;
+
   if(!period){
-    document.getElementById("guidePeriodDisplay").value="Generate a schedule first";
+    const message = document.createElement("p");
+    message.className = "empty";
+    message.textContent = "Fix the schedule setup to see this pay period.";
+    week1.appendChild(message);
     return;
   }
-  document.getElementById("guidePeriodDisplay").value=period.label;
+
   period.vals.forEach((value,i)=>{
-    const date=addDays(period.start,i);
-    const isOff=value===period.off;
-    const row=document.createElement("div");
-    row.className=`guiderow${isOff?" isoff":""}`;
-    const day=document.createElement("div");
-    day.className="guideday";
-    day.innerHTML=`${dayNames[date.getDay()]}<span class="guidedate">${date.getMonth()+1}/${date.getDate()}</span>`;
-    const first=document.createElement("div");
-    first.className="guidebox";
-    first.textContent=isOff?"Leave blank":period.shift;
-    const second=document.createElement("div");
-    second.className="guidebox";
-    second.textContent=isOff?"Leave blank":"10 Hours";
-    row.append(day,first,second);
-    (i<7?week1:week2).appendChild(row);
+    const date = addDays(period.start,i);
+    const isOff = value===period.off;
+    const row = document.createElement("div");
+    row.className = `guide-row${isOff ? " is-off" : ""}`;
+    row.innerHTML = `
+      <div class="guide-day">${dayNames[date.getDay()].slice(0,3)}<span class="guide-date">${compactDate(date)}</span></div>
+      <div class="guide-value">${isOff ? "Leave blank" : period.shift}</div>
+      <div class="guide-value">${isOff ? "Leave blank" : "10 Hours"}</div>
+    `;
+    (i<7 ? week1 : week2).appendChild(row);
   });
 }
-function generate(){
-  const err=document.getElementById("error");
-  err.style.display="none";
-  const anchor=document.getElementById("anchorMonth").value;
-  const startVal=document.getElementById("firstPeriod").value;
-  const count=Number(document.getElementById("periodCount").value);
-  const workSelect=document.getElementById("workCode");
-  const work=workSelect.value;
-  const shift=workSelect.options[workSelect.selectedIndex].text;
-  const off="X";
-  const direction=1;
-  const rule="weekContainingFirst";
-  const baseDays=Array.from({length:7},(_,i)=>i)
-    .filter(i=>document.getElementById("d"+i).checked);
+function generate(keepSelection=true){
+  const errorBox = document.getElementById("error");
+  const anchor = document.getElementById("anchorMonth").value;
+  const startValue = document.getElementById("firstPeriod").value;
+  const count = Number(document.getElementById("periodCount").value);
+  const workSelect = document.getElementById("workCode");
+  const work = workSelect.value;
+  const shift = workSelect.options[workSelect.selectedIndex].text;
+  const baseDays = selectedDays();
+  const previousSelection = keepSelection ? Number(document.getElementById("guidePeriod").value)||0 : 0;
 
-  if(!anchor||!startVal||!count||baseDays.length===0){
-    err.textContent="Choose an anchor month, a starting pay period, and at least one day off.";
-    err.style.display="block"; return;
+  errorBox.style.display = "none";
+  errorBox.textContent = "";
+
+  if(!anchor||!startValue||!count||baseDays.length===0){
+    errorBox.textContent = "Choose a month, a starting pay period, and at least one day off.";
+    errorBox.style.display = "block";
+    generatedPeriods = [];
+    document.getElementById("guidePeriod").innerHTML = "<option>Schedule needs attention</option>";
+    renderGuide();
+    return;
   }
-  const [anchorY,anchorM1]=anchor.split("-").map(Number), anchorM=anchorM1-1;
-  const first=localDate(startVal);
+
+  const [anchorY,anchorMonth] = anchor.split("-").map(Number);
+  const first = localDate(startValue);
   if(first.getDay()!==1){
-    err.textContent="The first pay-period date should be a Monday.";
-    err.style.display="block"; return;
+    errorBox.textContent = "The first pay period must start on a Monday.";
+    errorBox.style.display = "block";
+    generatedPeriods = [];
+    document.getElementById("guidePeriod").innerHTML = "<option>Schedule needs attention</option>";
+    renderGuide();
+    return;
   }
 
-  const tbody=document.querySelector("#scheduleTable tbody");
-  tbody.innerHTML="";
-  const lines=[];
-  generatedPeriods=[];
+  generatedPeriods = [];
+  const tableBody = document.querySelector("#scheduleTable tbody");
+  const copyLines = [];
+  tableBody.innerHTML = "";
 
-  for(let p=0;p<count;p++){
-    const periodStart=addDays(first,p*14);
-    const periodEnd=addDays(periodStart,13);
-    const tr=document.createElement("tr");
-    const periodTd=document.createElement("td");
-    periodTd.className="period";
-    periodTd.textContent=`${mdy(periodStart)} – ${mdy(periodEnd)}`;
-    tr.appendChild(periodTd);
+  for(let periodIndex=0;periodIndex<count;periodIndex++){
+    const periodStart = addDays(first,periodIndex*14);
+    const periodEnd = addDays(periodStart,13);
+    const values = [];
+    const row = document.createElement("tr");
+    const periodCell = document.createElement("td");
+    periodCell.className = "period";
+    periodCell.textContent = `${numericDate(periodStart)} to ${numericDate(periodEnd)}`;
+    row.appendChild(periodCell);
 
-    const vals=[];
-    for(let i=0;i<14;i++){
-      const date=addDays(periodStart,i);
-      const offDays=rotatedOffDays(date,anchorY,anchorM,baseDays,direction,rule);
-      const value=offDays.has(date.getDay())?off:work;
-      vals.push(value);
-      const td=document.createElement("td");
-      const entry=document.createElement("span");
-      entry.className="entry";
-      entry.textContent=value;
-      const entryDate=document.createElement("span");
-      entryDate.className="entrydate";
-      entryDate.textContent=`${date.getMonth()+1}/${date.getDate()}`;
-      td.append(entry,entryDate);
-      td.className=value===off?"off":"work";
-      td.title=`${dayNames[date.getDay()]} ${mdy(date)}`;
-      tr.appendChild(td);
+    for(let dayIndex=0;dayIndex<14;dayIndex++){
+      const date = addDays(periodStart,dayIndex);
+      const offDays = rotatedOffDays(date,anchorY,anchorMonth-1,baseDays);
+      const value = offDays.has(date.getDay()) ? "X" : work;
+      values.push(value);
 
+      const cell = document.createElement("td");
+      cell.className = value==="X" ? "off" : "work";
+      cell.innerHTML = `<span class="entry">${value}</span><span class="entrydate">${compactDate(date)}</span>`;
+      cell.title = `${dayNames[date.getDay()]} ${numericDate(date)}`;
+      row.appendChild(cell);
     }
-    tbody.appendChild(tr);
-    lines.push(`${mdy(periodStart)}--${mdy(periodEnd)}\t${vals.join("\t")}`);
-    generatedPeriods.push({label:`${mdy(periodStart)} – ${mdy(periodEnd)}`,start:periodStart,vals,off,shift});
+
+    tableBody.appendChild(row);
+    copyLines.push(`${numericDate(periodStart)}--${numericDate(periodEnd)}\t${values.join("\t")}`);
+    generatedPeriods.push({
+      label:`${shortDate(periodStart)} to ${shortDate(periodEnd)}`,
+      start:periodStart,
+      vals:values,
+      off:"X",
+      shift
+    });
   }
 
-  document.getElementById("copyText").textContent=lines.join("\n");
-  document.getElementById("guideIntro").innerHTML=`Work days use <strong>${shift} + 10 Hours</strong>. On days off, leave both dropdowns blank.`;
-  const guideSelect=document.getElementById("guidePeriod");
-  guideSelect.innerHTML="";
-  generatedPeriods.forEach((period,i)=>{
-    const option=document.createElement("option");
-    option.value=i;
-    option.textContent=period.label;
+  const guideSelect = document.getElementById("guidePeriod");
+  guideSelect.innerHTML = "";
+  generatedPeriods.forEach((period,index)=>{
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = period.label;
     guideSelect.appendChild(option);
   });
+  guideSelect.value = Math.min(previousSelection,generatedPeriods.length-1);
+  document.getElementById("copyText").textContent = copyLines.join("\n");
+  saveSettings();
   renderGuide();
 }
-document.getElementById("generate").addEventListener("click",generate);
+
+loadSettings();
+generate(false);
+
+document.querySelectorAll("#setupPanel input, #setupPanel select, #periodCount").forEach(control=>{
+  control.addEventListener("change",()=>generate());
+});
 document.getElementById("guidePeriod").addEventListener("change",renderGuide);
+document.getElementById("previousPeriod").addEventListener("click",()=>{
+  const select = document.getElementById("guidePeriod");
+  select.value = Math.max(0,Number(select.value)-1);
+  renderGuide();
+});
+document.getElementById("nextPeriod").addEventListener("click",()=>{
+  const select = document.getElementById("guidePeriod");
+  select.value = Math.min(generatedPeriods.length-1,Number(select.value)+1);
+  renderGuide();
+});
 document.getElementById("copyAll").addEventListener("click",async()=>{
-  const text=document.getElementById("copyText").textContent;
+  const status = document.getElementById("copyStatus");
   try{
-    await navigator.clipboard.writeText(text);
-    const b=document.getElementById("copyAll"), old=b.textContent;
-    b.textContent="Copied!";
-    setTimeout(()=>b.textContent=old,1200);
-  }catch(e){
-    alert("Copy was blocked by the browser. Select the text in the black box and copy it manually.");
+    await navigator.clipboard.writeText(document.getElementById("copyText").textContent);
+    status.textContent = "Schedule copied.";
+  }catch(error){
+    status.textContent = "Your browser blocked copying. Select and copy the table instead.";
   }
 });
-generate();
+document.getElementById("printSchedule").addEventListener("click",()=>window.print());
 </script>
 </body>
 </html>
