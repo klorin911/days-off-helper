@@ -7,272 +7,342 @@
 <style>
   :root{
     color-scheme:light;
-    --bg:#f5f7f9; --surface:#fff; --ink:#182230; --ink-soft:#344054; --muted:#667085;
-    --line:#e3e8ee; --line-strong:#8a94a3; --accent:#1f65a6; --accent-hover:#18578f;
-    --accent-soft:#eef5fb; --on-accent:#fff;
-    --off:#fff1f0; --off-ink:#922c28; --work:#eef7f0; --th-bg:#f1f4f7; --table-line:#c2cbd6; --radius:12px;
+    --page:#f4f5f7; --surface:#fff; --ink:#15181e; --ink-soft:#363c46; --muted:#555d6a;
+    --line:#dfe2e7; --line-strong:#b9bfc9; --track:#eceef2; --selected:#fff;
+    --accent:#2b62d9; --accent-hover:#2353bb; --accent-soft:#edf2fd; --on-accent:#fff;
+    --off-row:#f6f7f9; --error:#c2392f;
+    --shadow:0 1px 2px rgba(20,24,31,.05);
   }
   @media(prefers-color-scheme:dark){
     :root{
       color-scheme:dark;
-      --bg:#0f141a; --surface:#161c24; --ink:#e7ecf2; --ink-soft:#c2cbd6; --muted:#8a94a3;
-      --line:#262f3b; --line-strong:#5d6b7e; --accent:#5c9bd6; --accent-hover:#74ade2;
-      --accent-soft:#182533; --on-accent:#0f141a;
-      --off:#33211e; --off-ink:#f0a8a1; --work:#1b2a21; --th-bg:#1c242e; --table-line:#4a5869;
+      --page:#121418; --surface:#1b1e25; --ink:#f3f5f8; --ink-soft:#dde1e7; --muted:#b6bcc6;
+      --line:#343944; --line-strong:#59606d; --track:#262a32; --selected:#434b5a;
+      --accent:#8fb2ff; --accent-hover:#a9c4ff; --accent-soft:#243150; --on-accent:#0d1017;
+      --off-row:#262930; --error:#ff8a80;
+      --shadow:none;
     }
   }
   *{box-sizing:border-box}
-  body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  button,input,select{font:inherit}
+  [hidden]{display:none!important}
+  body{
+    margin:0;background:var(--page);color:var(--ink);
+    font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased
+  }
+  button,input,select{font:inherit;color:inherit}
   button{cursor:pointer}
-  .wrap{width:min(100% - 32px,760px);margin:0 auto;padding:40px 0 64px}
-  .stack{display:grid;gap:16px}
-  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
-  .main-panel{padding:24px}
-  label{display:block;margin:0 0 6px;color:var(--ink-soft);font-size:13px;font-weight:600}
-  input,select{
-    width:100%;min-height:44px;padding:0 11px;border:1px solid var(--line-strong);
-    border-radius:8px;background:var(--surface);color:var(--ink);outline:none
-  }
-  input:focus,select:focus,button:focus-visible,summary:focus-visible{
-    outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px
-  }
-  .field-error{margin:6px 0 0;color:var(--off-ink);font-size:13px;font-weight:600}
-  [aria-invalid="true"]{border-color:var(--off-ink)}
-
-  .period-nav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center}
-  .period-nav .period-select{min-width:0;position:relative}
-  #guidePeriod{
-    padding:0 28px 0 2px;border:0;border-radius:8px;background:transparent;
-    font-size:20px;font-weight:600;letter-spacing:-.015em;appearance:none;text-overflow:ellipsis
-  }
-  .period-select::after{
-    content:"";position:absolute;right:8px;top:50%;width:8px;height:8px;pointer-events:none;
-    border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
-    transform:translateY(-70%) rotate(45deg)
-  }
-  .nav-button{
-    width:44px;height:44px;padding:0;border:1px solid var(--line-strong);
-    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-size:22px;line-height:1
-  }
-  .nav-button:hover:not(:disabled){background:var(--th-bg)}
-  .nav-button:disabled{opacity:.35;cursor:not-allowed}
-
-  .week-tabs{display:none;gap:8px;margin-top:16px}
-  .week-tabs button{
-    flex:1;min-height:40px;border:1px solid var(--line-strong);border-radius:8px;
-    background:var(--surface);color:var(--ink-soft);font-weight:600;font-size:13px
-  }
-  .week-tabs button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
-
-  .guide{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
-  .guide-week h3{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:600}
-  .guide-header,.guide-row{display:grid;grid-template-columns:66px 1fr 1fr;gap:6px}
-  .guide-header{margin-bottom:5px;color:var(--muted);font-size:12px;font-weight:600;text-align:center;text-transform:uppercase;letter-spacing:.04em}
-  .guide-row{align-items:center;margin-bottom:6px}
-  .guide-day{font-weight:700;line-height:1.15}
-  .guide-date{display:block;margin-top:3px;color:var(--muted);font-size:12px;font-weight:400}
-  .guide-row.is-today .guide-day::after{
-    content:"";display:inline-block;width:6px;height:6px;margin-left:6px;
-    border-radius:50%;background:var(--accent);vertical-align:2px
-  }
-  .guide-value{
-    min-width:0;min-height:44px;padding:9px 8px;display:flex;align-items:center;justify-content:space-between;
-    border:1px solid var(--line-strong);border-radius:8px;background:var(--surface);font-size:13px;font-weight:600
-  }
-  .guide-row.is-off .guide-value{border-color:color-mix(in srgb,var(--off-ink) 35%,transparent);background:var(--off);color:var(--off-ink)}
-  .guide-note{margin:14px 0 0;color:var(--muted);font-size:13px;text-align:center}
-  .empty{margin:24px 0 0;padding:14px;border-radius:8px;background:var(--th-bg);color:var(--muted)}
-
-  details.panel{overflow:hidden}
-  details.panel>summary{
-    min-height:56px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
-    gap:16px;cursor:pointer;font-weight:600;list-style:none
-  }
-  details.panel>summary::-webkit-details-marker{display:none}
-  details.panel>summary::after{content:"+";color:var(--muted);font-size:22px;font-weight:400}
-  details.panel[open]>summary::after{content:"−"}
-  details.panel[open]>summary{border-bottom:1px solid var(--line)}
-  .summary-meta{color:var(--muted);font-size:13px;font-weight:400;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .details-body{padding:20px}
-
-  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .full{grid-column:1/-1}
-  .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-  .daycheck{position:relative}
-  .daycheck input{position:absolute;opacity:0;pointer-events:none}
-  .daycheck label{
-    margin:0;min-height:44px;padding:10px 2px;text-align:center;border:1px solid var(--line-strong);
-    border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:400
-  }
-  .daycheck input:checked+label{border-color:var(--accent);background:var(--accent);color:var(--on-accent);font-weight:600}
-  .daycheck input:focus-visible+label{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
-  .help{margin:6px 0 0;color:var(--muted);font-size:12px}
-  .reset-row{margin-top:16px}
-  .link{background:none;border:0;padding:0;color:var(--accent);font-size:13px;font-weight:600;text-decoration:underline}
-  .link:hover{color:var(--accent-hover)}
-
-  .schedule-tools{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px}
-  .count-field{width:150px}
-  .actions{display:flex;gap:8px}
-  .secondary{
-    min-height:44px;padding:0 14px;border:1px solid var(--line-strong);
-    border-radius:8px;background:var(--surface);color:var(--ink-soft);font-weight:600
-  }
-  .secondary:hover{background:var(--th-bg)}
-  .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:8px}
-  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-  th,td{padding:9px 8px;border-bottom:1px solid var(--table-line);text-align:center;white-space:nowrap}
-  th+th,td+td{border-left:1px solid color-mix(in srgb,var(--table-line) 45%,transparent)}
-  th{position:sticky;top:0;z-index:1;background:var(--th-bg);color:var(--ink-soft);font-size:12px;font-weight:600}
-  th:first-child,td:first-child{position:sticky;left:0;z-index:2;border-right:1px solid var(--table-line)}
-  th:first-child{z-index:3}
-  tr:last-child td{border-bottom:0}
-  td.period{text-align:left;font-weight:600;background:var(--surface)}
-  td.off{background:var(--off)}
-  td.work{background:var(--work)}
-  .status{min-height:20px;margin:10px 0 0;color:var(--muted);font-size:13px}
+  h1,h2,h3,p{margin:0}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .wrap{width:min(100% - 32px,920px);margin:0 auto;padding:36px 0 64px}
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
+  /* ---------- Header ---------- */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+  h1{font-size:25px;font-weight:700;letter-spacing:-.02em}
+  .link{background:none;border:0;padding:8px 0;color:var(--ink-soft);font-size:15px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+  .link:hover{color:var(--accent)}
+
+  /* ---------- Shared surfaces ---------- */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .section-title{grid-column:1/-1;font-size:17px;font-weight:650}
+
+  /* ---------- Setup ---------- */
+  .setup{display:grid;grid-template-columns:auto 1fr;gap:18px 28px;padding:20px 24px 24px}
+  fieldset{margin:0;padding:0;border:0;min-width:0}
+  label,legend{display:block;margin:0 0 8px;padding:0;color:var(--ink-soft);font-size:15px;font-weight:600}
+  .help{margin-top:6px;color:var(--muted);font-size:14px}
+  .field-error{margin-top:8px;color:var(--error);font-size:15px;font-weight:600}
+  input{
+    width:100%;min-height:46px;padding:0 13px;border:1px solid var(--line-strong);border-radius:10px;background:var(--surface)
+  }
+  input:hover{border-color:var(--muted)}
+  input[aria-invalid="true"]{border-color:var(--error);box-shadow:0 0 0 1px var(--error)}
+
+  .toggles{display:flex;gap:3px;padding:3px;border-radius:11px;background:var(--track)}
+  .toggles label{
+    flex:1;display:flex;align-items:center;justify-content:center;min-width:50px;min-height:40px;margin:0;padding:0 13px;
+    border-radius:8px;color:var(--ink-soft);font-size:16px;font-weight:500;cursor:pointer;user-select:none;
+    transition:background-color .12s,color .12s
+  }
+  .toggles input{position:absolute;opacity:0;pointer-events:none;width:auto;min-height:0}
+  .toggles label:hover{color:var(--ink)}
+  .toggles input:checked+label{background:var(--selected);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(20,24,31,.12)}
+  #dayChecks .toggles input:checked+label{background:var(--accent);color:var(--on-accent);box-shadow:none}
+  .toggles input:focus-visible+label{outline:3px solid var(--accent);outline-offset:1px}
+  #dayChecks[aria-invalid="true"] .toggles{box-shadow:0 0 0 1px var(--error)}
+
+  /* ---------- Pay period ---------- */
+  .card{margin-top:16px;overflow:hidden}
+  .period-nav{
+    display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;
+    padding:14px 16px;border-bottom:1px solid var(--line)
+  }
+  .period-select{position:relative;min-width:0;justify-self:center;max-width:100%}
+  #guidePeriod{
+    width:100%;min-height:44px;padding:0 30px 0 10px;border:0;border-radius:10px;background:transparent;appearance:none;
+    font-size:21px;font-weight:650;letter-spacing:-.015em;text-overflow:ellipsis;cursor:pointer
+  }
+  #guidePeriod:hover{background:var(--track)}
+  .period-select::after{
+    content:"";position:absolute;right:12px;top:50%;width:9px;height:9px;pointer-events:none;
+    border-right:2px solid var(--ink-soft);border-bottom:2px solid var(--ink-soft);transform:translateY(-70%) rotate(45deg)
+  }
+  .nav-button{
+    display:grid;place-items:center;width:44px;height:44px;padding:0;
+    border:1px solid var(--line-strong);border-radius:50%;background:transparent;color:var(--ink);
+    transition:background-color .12s,border-color .12s,color .12s
+  }
+  .nav-button svg{width:20px;height:20px}
+  .nav-button:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .nav-button:active:not(:disabled){transform:scale(.95)}
+  .nav-button:disabled{opacity:.3;cursor:not-allowed}
+
+  .week-tabs{display:none;padding:12px 16px 0}
+  .week-tabs button{flex:1;min-height:40px;border:0;border-radius:8px;background:transparent;color:var(--ink-soft);font-size:16px;font-weight:500}
+  .week-tabs button[aria-pressed="true"]{background:var(--selected);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(20,24,31,.12)}
+
+  .weeks{display:grid;grid-template-columns:1fr 1fr}
+  .week{padding:18px 20px 20px;min-width:0}
+  .week+.week{border-left:1px solid var(--line)}
+  .week h3{margin-bottom:10px;font-size:17px;font-weight:650}
+  .week h3 span{margin-left:10px;color:var(--muted);font-weight:500;font-size:15px}
+
+  .day-table{width:100%;border-collapse:separate;border-spacing:0 3px}
+  .day-table th{padding:0 12px 6px;color:var(--muted);font-size:14px;font-weight:600;text-align:left}
+  .day-table td{height:50px;padding:0 12px;font-size:17px;font-weight:650}
+  .day-table td:first-child{border-radius:10px 0 0 10px}
+  .day-table td:last-child{border-radius:0 10px 10px 0}
+  .day-table .day{width:40%;white-space:nowrap}
+  .day-table .date{margin-left:8px;color:var(--ink-soft);font-weight:400}
+  .off-label{color:var(--ink-soft);font-weight:500;font-style:italic}
+  .is-off td{background:var(--off-row);color:var(--ink-soft);font-weight:500}
+  .is-off .day{font-weight:500}
+  .is-today td{background:var(--accent-soft)}
+  .is-today .day{box-shadow:inset 4px 0 0 var(--accent)}
+  .tag{
+    display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;
+    background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700;vertical-align:2px
+  }
+  .card-foot{padding:14px 20px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:15px}
+  .empty{padding:40px 20px;color:var(--ink-soft);font-size:17px;text-align:center}
+
+  /* ---------- Full schedule ---------- */
+  details{margin-top:16px}
+  details>summary{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:60px;padding:0 20px;
+    font-size:17px;font-weight:650;list-style:none;cursor:pointer
+  }
+  details>summary::-webkit-details-marker{display:none}
+  details>summary::after{
+    content:"";width:9px;height:9px;margin-right:4px;border-right:2px solid var(--ink-soft);border-bottom:2px solid var(--ink-soft);
+    transform:rotate(45deg);transition:transform .15s
+  }
+  details[open]>summary::after{transform:rotate(-135deg)}
+  details[open]>summary{border-bottom:1px solid var(--line)}
+  .summary-meta{margin-left:10px;color:var(--muted);font-size:15px;font-weight:500}
+  .details-body{padding:18px 20px 20px}
+  .schedule-tools{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .count-field{width:200px}
+  .actions{display:flex;gap:8px}
+  .button{
+    min-height:46px;padding:0 18px;border:1px solid var(--line-strong);border-radius:10px;
+    background:var(--surface);color:var(--ink);font-weight:600
+  }
+  .button:hover{background:var(--track)}
+  .button.primary{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+  .button.primary:hover{background:var(--accent-hover)}
+  .tablewrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
+  #scheduleTable{width:100%;border-collapse:separate;border-spacing:0;font-size:15px}
+  #scheduleTable th,#scheduleTable td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+  #scheduleTable th{position:sticky;top:0;z-index:1;background:var(--surface);color:var(--ink-soft);font-size:14px;font-weight:600}
+  #scheduleTable th:first-child,#scheduleTable td:first-child{position:sticky;left:0;z-index:2;background:var(--surface);border-right:1px solid var(--line)}
+  #scheduleTable th:first-child{z-index:3}
+  #scheduleTable th:nth-child(9),#scheduleTable td:nth-child(9){border-left:1px solid var(--line)}
+  #scheduleTable tr:last-child td{border-bottom:0}
+  #scheduleTable td.period{text-align:left;font-weight:600}
+  #scheduleTable td.off{background:var(--off-row)}
+  .status{min-height:24px;margin-top:12px;color:var(--ink-soft);font-size:15px;font-weight:500}
+
+  @media(max-width:720px){
+    .setup{grid-template-columns:1fr}
+  }
   @media(max-width:560px){
-    .wrap{width:min(100% - 20px,760px);padding:28px 0 44px}
-    .main-panel{padding:18px 14px}
-    .setup-grid{grid-template-columns:1fr}
-    .full{grid-column:auto}
-    .week-tabs{display:flex}
-    .guide{grid-template-columns:1fr;gap:0}
-    .guide:not(.show-w2) .guide-week:last-of-type{display:none}
-    .guide.show-w2 .guide-week:first-of-type{display:none}
+    .wrap{padding:20px 0 44px}
+    .setup{padding:16px}
+    .toggles label{min-width:0;padding:0 2px;font-size:14px}
+    #workCodeGroup .toggles label{font-size:16px}
+    .period-nav{gap:4px;padding:12px 10px}
+    #guidePeriod{padding:0 22px 0 2px;font-size:17px}
+    h1{font-size:21px}
+    .link{font-size:14px;white-space:nowrap}
+    .period-select::after{right:6px}
+    .week-tabs{display:block}
+    .weeks{grid-template-columns:1fr}
+    .week{padding:16px 12px}
+    .day-table td{padding:0 10px}
+    .week+.week{border-left:0}
+    .weeks:not(.show-w2) .week:last-child{display:none}
+    .weeks.show-w2 .week:first-child{display:none}
+    details>summary{padding:0 16px}
+    .details-body{padding:16px}
     .schedule-tools{display:block}
     .count-field{width:100%;margin-bottom:12px}
     .actions{display:grid;grid-template-columns:1fr 1fr}
-    details.panel>summary{padding:15px 14px}
-    .details-body{padding:16px 14px}
   }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   @media print{
-    body{background:#fff}.wrap{width:100%;padding:0}
-    .main-panel,header,.week-tabs,.setup-panel summary,.setup-panel .details-body,.schedule-panel summary,.schedule-tools,.status{display:none}
-    details.panel{border:0}details.panel>.details-body{display:block;padding:0}.tablewrap{border:0}
-    th,td{border-color:#999}th{background:#f1f4f7;color:#182230}
+    body{background:#fff;color:#000}.wrap{width:100%;padding:0}
+    .top,.setup,.card,details>summary,.schedule-tools,.status{display:none}
+    .panel{border:0;box-shadow:none}.details-body{padding:0}
+    .tablewrap{border:0;max-height:none;overflow:visible}
+    #scheduleTable th,#scheduleTable td{border-color:#999}
+    #scheduleTable td.off{background:#eee}
   }
 </style>
 </head>
 <body>
-<h1 class="visually-hidden">Rotating days off</h1>
 <div class="wrap">
-  <main class="stack">
-    <section class="panel main-panel" aria-label="This pay period">
+  <header class="top">
+    <h1>Rotating days off</h1>
+    <button class="link" id="resetDefaults" type="button">Reset to defaults</button>
+  </header>
+
+  <main>
+    <section class="panel setup" id="setup" aria-labelledby="setupHeading">
+      <h2 class="section-title" id="setupHeading">Your schedule</h2>
+      <fieldset id="workCodeGroup">
+        <legend>Shift</legend>
+        <div class="toggles">
+          <input type="radio" name="workCode" id="shiftD10" value="D10" checked><label for="shiftD10">Days</label>
+          <input type="radio" name="workCode" id="shiftS10" value="S10"><label for="shiftS10">Swings</label>
+          <input type="radio" name="workCode" id="shiftM10" value="M10"><label for="shiftM10">Mids</label>
+        </div>
+      </fieldset>
+
+      <fieldset id="dayChecks" aria-describedby="daysHelp">
+        <legend>Days off</legend>
+        <div class="toggles">
+          <input type="checkbox" id="d1" checked><label for="d1">Mon</label>
+          <input type="checkbox" id="d2"><label for="d2">Tue</label>
+          <input type="checkbox" id="d3"><label for="d3">Wed</label>
+          <input type="checkbox" id="d4"><label for="d4">Thu</label>
+          <input type="checkbox" id="d5"><label for="d5">Fri</label>
+          <input type="checkbox" id="d6" checked><label for="d6">Sat</label>
+          <input type="checkbox" id="d0" checked><label for="d0">Sun</label>
+        </div>
+        <p class="field-error" id="daysError" role="alert" hidden></p>
+        <p class="help" id="daysHelp">Your days off move forward one weekday each month.</p>
+      </fieldset>
+
+      <div>
+        <label for="anchorMonth">Month those days off apply to</label>
+        <input id="anchorMonth" type="month">
+        <p class="field-error" id="anchorMonthError" role="alert" hidden></p>
+      </div>
+
+      <div>
+        <label for="firstPeriod">First pay period starts</label>
+        <input id="firstPeriod" type="date" aria-describedby="firstPeriodHelp">
+        <p class="help" id="firstPeriodHelp">Always a Monday.</p>
+        <p class="field-error" id="firstPeriodError" role="alert" hidden></p>
+      </div>
+    </section>
+
+    <section class="panel card" aria-labelledby="cardHeading">
+      <h2 class="visually-hidden" id="cardHeading">Pay period</h2>
       <div class="period-nav">
-        <button class="nav-button" id="previousPeriod" type="button" aria-label="Previous pay period">‹</button>
+        <button class="nav-button" id="previousPeriod" type="button" aria-label="Previous pay period"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
         <div class="period-select">
           <select id="guidePeriod" aria-label="Pay period"></select>
         </div>
-        <button class="nav-button" id="nextPeriod" type="button" aria-label="Next pay period">›</button>
+        <button class="nav-button" id="nextPeriod" type="button" aria-label="Next pay period"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
       </div>
 
       <div class="week-tabs" aria-label="Choose week">
-        <button type="button" data-week="1" aria-pressed="true">Week 1</button>
-        <button type="button" data-week="2" aria-pressed="false">Week 2</button>
+        <div class="toggles">
+          <button type="button" data-week="1" aria-pressed="true">Week 1</button>
+          <button type="button" data-week="2" aria-pressed="false">Week 2</button>
+        </div>
       </div>
 
-      <div class="guide" id="guide">
-        <section class="guide-week" aria-labelledby="weekOneHeading">
-          <h3 id="weekOneHeading">First week</h3>
-          <div class="guide-header" aria-hidden="true"><span></span><span>Shift</span><span>Hours</span></div>
-          <div id="guideWeek1"></div>
+      <div class="weeks" id="guide">
+        <section class="week" aria-labelledby="weekOneHeading">
+          <h3 id="weekOneHeading">Week 1<span id="week1Range"></span></h3>
+          <table class="day-table">
+            <thead><tr><th scope="col">Day</th><th scope="col">Shift</th><th scope="col">Hours</th></tr></thead>
+            <tbody id="guideWeek1"></tbody>
+          </table>
         </section>
-        <section class="guide-week" aria-labelledby="weekTwoHeading">
-          <h3 id="weekTwoHeading">Second week</h3>
-          <div class="guide-header" aria-hidden="true"><span></span><span>Shift</span><span>Hours</span></div>
-          <div id="guideWeek2"></div>
+        <section class="week" aria-labelledby="weekTwoHeading">
+          <h3 id="weekTwoHeading">Week 2<span id="week2Range"></span></h3>
+          <table class="day-table">
+            <thead><tr><th scope="col">Day</th><th scope="col">Shift</th><th scope="col">Hours</th></tr></thead>
+            <tbody id="guideWeek2"></tbody>
+          </table>
         </section>
       </div>
-      <p class="guide-note">Leave internal system fields blank on tinted days.</p>
+      <p class="empty" id="guideEmpty" hidden>Fix the highlighted setting above to see your pay period.</p>
+      <p class="card-foot">Leave Shift and Hours blank on days off.</p>
     </section>
 
-    <details class="panel setup-panel" id="setupPanel">
-      <summary>Edit schedule setup<span class="summary-meta" id="setupMeta"></span></summary>
+    <details class="panel" id="schedulePanel">
+      <summary><span>Full schedule and export<span class="summary-meta" id="scheduleMeta"></span></span></summary>
       <div class="details-body">
-        <div class="setup-grid">
-          <div>
-            <label for="anchorMonth">Month these days off apply to</label>
-            <input id="anchorMonth" type="month">
-            <p class="field-error" id="anchorMonthError" role="alert" hidden></p>
-          </div>
-          <div>
-            <label for="firstPeriod">First pay period starts</label>
-            <input id="firstPeriod" type="date">
-            <p class="help">This date must be a Monday.</p>
-            <p class="field-error" id="firstPeriodError" role="alert" hidden></p>
-          </div>
-          <div>
-            <label for="workCode">Shift</label>
-            <select id="workCode">
-              <option value="D10">Days</option>
-              <option value="S10">Swings</option>
-              <option value="M10">Mids</option>
-            </select>
-          </div>
-          <div class="full">
-            <label>Days off that month</label>
-            <div class="days" id="dayChecks">
-              <div class="daycheck"><input type="checkbox" id="d1" checked><label for="d1">Mon</label></div>
-              <div class="daycheck"><input type="checkbox" id="d2"><label for="d2">Tue</label></div>
-              <div class="daycheck"><input type="checkbox" id="d3"><label for="d3">Wed</label></div>
-              <div class="daycheck"><input type="checkbox" id="d4"><label for="d4">Thu</label></div>
-              <div class="daycheck"><input type="checkbox" id="d5"><label for="d5">Fri</label></div>
-              <div class="daycheck"><input type="checkbox" id="d6" checked><label for="d6">Sat</label></div>
-              <div class="daycheck"><input type="checkbox" id="d0" checked><label for="d0">Sun</label></div>
-            </div>
-            <p class="field-error" id="daysError" role="alert" hidden></p>
-            <p class="help">The days off move forward one weekday each month.</p>
-          </div>
+      <div class="schedule-tools">
+        <div class="count-field">
+          <label for="periodCount">Pay periods to show</label>
+          <input id="periodCount" type="number" min="1" max="40" value="12">
+          <p class="field-error" id="periodCountError" role="alert" hidden></p>
         </div>
-        <div class="reset-row">
-          <button class="link" id="resetDefaults" type="button">Reset to defaults</button>
+        <div class="actions">
+          <button class="button primary" id="copyAll" type="button">Copy schedule</button>
+          <button class="button" id="printSchedule" type="button">Print</button>
         </div>
       </div>
-    </details>
-
-    <details class="panel schedule-panel" id="schedulePanel">
-      <summary>Full schedule and export<span class="summary-meta" id="scheduleMeta"></span></summary>
-      <div class="details-body">
-        <div class="schedule-tools">
-          <div class="count-field">
-            <label for="periodCount">Periods to show</label>
-            <input id="periodCount" type="number" min="1" max="40" value="12">
-            <p class="field-error" id="periodCountError" role="alert" hidden></p>
-          </div>
-          <div class="actions">
-            <button class="secondary" id="copyAll" type="button">Copy schedule</button>
-            <button class="secondary" id="printSchedule" type="button">Print</button>
-          </div>
-        </div>
-        <div class="tablewrap">
-          <table id="scheduleTable">
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Mon 1</th><th>Tue 1</th><th>Wed 1</th><th>Thu 1</th><th>Fri 1</th><th>Sat 1</th><th>Sun 1</th>
-                <th>Mon 2</th><th>Tue 2</th><th>Wed 2</th><th>Thu 2</th><th>Fri 2</th><th>Sat 2</th><th>Sun 2</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="status" id="copyStatus" aria-live="polite"></p>
+      <div class="tablewrap">
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>Pay period</th>
+              <th>Mon 1</th><th>Tue 1</th><th>Wed 1</th><th>Thu 1</th><th>Fri 1</th><th>Sat 1</th><th>Sun 1</th>
+              <th>Mon 2</th><th>Tue 2</th><th>Wed 2</th><th>Thu 2</th><th>Fri 2</th><th>Sat 2</th><th>Sun 2</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="status" id="copyStatus" aria-live="polite"></p>
       </div>
     </details>
-    <div class="visually-hidden" id="copyText">No rows generated yet.</div>
   </main>
 </div>
 
 <script>
 const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const shortNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const shiftNames = {D10:"Days",S10:"Swings",M10:"Mids"};
 const storageKey = "rotating-days-off-settings";
-let generatedPeriods = [];
+const OFF = "X";
+const HOURS = "10 Hours";
+const maxPeriods = 40;
 
+const $ = id=>document.getElementById(id);
+const els = {
+  anchorMonth:$("anchorMonth"), firstPeriod:$("firstPeriod"), periodCount:$("periodCount"),
+  guide:$("guide"), guideEmpty:$("guideEmpty"), guidePeriod:$("guidePeriod"),
+  guideWeeks:[$("guideWeek1"),$("guideWeek2")], weekRanges:[$("week1Range"),$("week2Range")],
+  previousPeriod:$("previousPeriod"), nextPeriod:$("nextPeriod"),
+  schedulePanel:$("schedulePanel"), scheduleMeta:$("scheduleMeta"),
+  tableBody:document.querySelector("#scheduleTable tbody"), copyStatus:$("copyStatus")
+};
+const dayBoxes = Array.from({length:7},(_,i)=>$(`d${i}`));
+const shiftRadios = Array.from(document.querySelectorAll('input[name="workCode"]'));
+let generatedPeriods = [];
+let copyText = "";
+
+/* ---------- Dates ---------- */
+const pad = n=>String(n).padStart(2,"0");
 function localDate(value){
   const [y,m,d] = value.split("-").map(Number);
   return new Date(y,m-1,d);
@@ -282,287 +352,243 @@ function addDays(date,days){
   result.setDate(result.getDate()+days);
   return result;
 }
-function isoDate(date){
-  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+function sameDay(a,b){
+  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
 }
-function defaultSettings(){
-  const today = new Date();
-  const daysUntilMonday = today.getDay()===1 ? 0 : (8-today.getDay())%7;
-  const monday = addDays(today,daysUntilMonday);
-  return {
-    anchorMonth:`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}`,
-    firstPeriod:isoDate(monday),
-    periodCount:"12",
-    workCode:"D10",
-    days:[0,1,6]
-  };
-}
-function applyDefaults(){
-  const settings = defaultSettings();
-  document.getElementById("anchorMonth").value = settings.anchorMonth;
-  document.getElementById("firstPeriod").value = settings.firstPeriod;
-  document.getElementById("periodCount").value = settings.periodCount;
-  document.getElementById("workCode").value = settings.workCode;
-  for(let i=0;i<7;i++) document.getElementById(`d${i}`).checked = settings.days.includes(i);
-}
-function monthDiff(aY,aM,bY,bM){
-  return (bY-aY)*12+(bM-aM);
-}
-function shortDate(date){
-  return date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
-}
-function compactDate(date){
-  return `${date.getMonth()+1}/${date.getDate()}`;
-}
-function numericDate(date){
-  return `${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}-${date.getFullYear()}`;
-}
+const isoDate = date=>`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+const numericDate = date=>`${pad(date.getMonth()+1)}-${pad(date.getDate())}-${date.getFullYear()}`;
+const compactDate = date=>`${date.getMonth()+1}/${date.getDate()}`;
+const shortDate = date=>date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+const monthDay = date=>date.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+const mondayOnOrBefore = date=>addDays(date,-((date.getDay()+6)%7));
+
+/* ---------- Rotation rules ----------
+   A month's days off take effect on the Monday of the week containing the 1st,
+   and every month shifts each day off forward by one weekday. */
 function effectiveRotationMonth(date){
   const nextFirst = new Date(date.getFullYear(),date.getMonth()+1,1);
-  const nextSwitch = addDays(nextFirst,-((nextFirst.getDay()+6)%7));
-  if(date>=nextSwitch) return {y:nextFirst.getFullYear(),m:nextFirst.getMonth()};
+  if(date>=mondayOnOrBefore(nextFirst)) return {y:nextFirst.getFullYear(),m:nextFirst.getMonth()};
 
   const currentFirst = new Date(date.getFullYear(),date.getMonth(),1);
-  const currentSwitch = addDays(currentFirst,-((currentFirst.getDay()+6)%7));
-  if(date>=currentSwitch) return {y:date.getFullYear(),m:date.getMonth()};
+  if(date>=mondayOnOrBefore(currentFirst)) return {y:date.getFullYear(),m:date.getMonth()};
 
   const previous = new Date(date.getFullYear(),date.getMonth()-1,1);
   return {y:previous.getFullYear(),m:previous.getMonth()};
 }
 function rotatedOffDays(date,anchorY,anchorM,baseDays){
   const effective = effectiveRotationMonth(date);
-  const shifts = monthDiff(anchorY,anchorM,effective.y,effective.m);
+  const shifts = (effective.y-anchorY)*12+(effective.m-anchorM);
   return new Set(baseDays.map(day=>((day+shifts)%7+7)%7));
 }
+
+/* ---------- Settings ---------- */
 function selectedDays(){
-  return Array.from({length:7},(_,i)=>i).filter(i=>document.getElementById(`d${i}`).checked);
+  return dayBoxes.flatMap((box,i)=>box.checked ? [i] : []);
+}
+function selectedWork(){
+  return (shiftRadios.find(radio=>radio.checked)||shiftRadios[0]).value;
+}
+function defaultSettings(){
+  const today = new Date();
+  const monday = addDays(today,(8-today.getDay())%7);
+  return {
+    anchorMonth:`${today.getFullYear()}-${pad(today.getMonth()+1)}`,
+    firstPeriod:isoDate(monday),
+    periodCount:"12",
+    workCode:"D10",
+    days:[0,1,6]
+  };
+}
+function applySettings(settings){
+  for(const key of ["anchorMonth","firstPeriod","periodCount"]){
+    if(settings[key]) els[key].value = settings[key];
+  }
+  if(settings.workCode in shiftNames) shiftRadios.forEach(radio=>{ radio.checked = radio.value===settings.workCode; });
+  if(Array.isArray(settings.days)) dayBoxes.forEach((box,i)=>{ box.checked = settings.days.includes(i); });
 }
 function saveSettings(){
-  const settings = {
-    anchorMonth:document.getElementById("anchorMonth").value,
-    firstPeriod:document.getElementById("firstPeriod").value,
-    periodCount:document.getElementById("periodCount").value,
-    workCode:document.getElementById("workCode").value,
-    days:selectedDays()
-  };
-  localStorage.setItem(storageKey,JSON.stringify(settings));
+  try{
+    localStorage.setItem(storageKey,JSON.stringify({
+      anchorMonth:els.anchorMonth.value,
+      firstPeriod:els.firstPeriod.value,
+      periodCount:els.periodCount.value,
+      workCode:selectedWork(),
+      days:selectedDays()
+    }));
+  }catch(error){ /* storage unavailable; settings just won't persist */ }
 }
 function loadSettings(){
   try{
     const settings = JSON.parse(localStorage.getItem(storageKey));
-    if(!settings){ applyDefaults(); return; }
-    if(settings.anchorMonth) document.getElementById("anchorMonth").value=settings.anchorMonth;
-    if(settings.firstPeriod) document.getElementById("firstPeriod").value=settings.firstPeriod;
-    if(settings.periodCount) document.getElementById("periodCount").value=settings.periodCount;
-    if(settings.workCode) document.getElementById("workCode").value=settings.workCode;
-    if(Array.isArray(settings.days)){
-      for(let i=0;i<7;i++) document.getElementById(`d${i}`).checked=settings.days.includes(i);
-    }
+    applySettings(settings || defaultSettings());
   }catch(error){
-    localStorage.removeItem(storageKey);
-    applyDefaults();
+    try{ localStorage.removeItem(storageKey); }catch(ignored){}
+    applySettings(defaultSettings());
   }
 }
-function setFieldError(controlId,errorId,message){
-  const control = document.getElementById(controlId);
-  const error = document.getElementById(errorId);
-  if(message){
-    error.textContent = message;
-    error.hidden = false;
-    control.setAttribute("aria-invalid","true");
-  }else{
-    error.hidden = true;
-    control.removeAttribute("aria-invalid");
-  }
+
+/* ---------- Validation ---------- */
+function setFieldError(controlId,message){
+  const control = $(controlId);
+  const error = $(`${controlId === "dayChecks" ? "days" : controlId}Error`);
+  error.textContent = message;
+  error.hidden = !message;
+  if(message) control.setAttribute("aria-invalid","true");
+  else control.removeAttribute("aria-invalid");
   return Boolean(message);
 }
-function updateSummaryMeta(shift){
-  const anchor = document.getElementById("anchorMonth").value;
-  const count = Number(document.getElementById("periodCount").value);
-  const baseDays = selectedDays();
-  const setupMeta = document.getElementById("setupMeta");
-  const scheduleMeta = document.getElementById("scheduleMeta");
+function validate(count,baseDays){
+  const startValue = els.firstPeriod.value;
+  let startError = "";
+  if(!startValue) startError = "Choose a start date.";
+  else if(localDate(startValue).getDay()!==1) startError = "Pick a Monday. Pay periods start on Mondays.";
 
-  if(anchor && baseDays.length>0 && shift){
-    const [y,m] = anchor.split("-").map(Number);
-    const monthLabel = new Date(y,m-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"});
-    const dayLabel = [1,2,3,4,5,6,0].filter(d=>baseDays.includes(d)).map(d=>shortNames[d]).join(" ");
-    setupMeta.textContent = `${shift} · ${dayLabel} · from ${monthLabel}`;
-  }else{
-    setupMeta.textContent = "";
-  }
-  scheduleMeta.textContent = count>=1 && count<=40 ? `${count} periods` : "";
+  const setupInvalid = [
+    setFieldError("anchorMonth", els.anchorMonth.value ? "" : "Choose a month."),
+    setFieldError("firstPeriod", startError),
+    setFieldError("dayChecks", baseDays.length ? "" : "Pick at least one day off.")
+  ].some(Boolean);
+  const countInvalid = setFieldError("periodCount",
+    (!count||count<1||count>maxPeriods) ? `Enter a number from 1 to ${maxPeriods}.` : "");
+
+  if(countInvalid) els.schedulePanel.open = true;
+  return !setupInvalid && !countInvalid;
 }
+
+/* ---------- Rendering ---------- */
 function renderGuide(){
-  const select = document.getElementById("guidePeriod");
-  const index = Number(select.value)||0;
+  const index = Number(els.guidePeriod.value)||0;
   const period = generatedPeriods[index];
-  const week1 = document.getElementById("guideWeek1");
-  const week2 = document.getElementById("guideWeek2");
-  week1.innerHTML = "";
-  week2.innerHTML = "";
-
-  document.getElementById("previousPeriod").disabled=!period||index===0;
-  document.getElementById("nextPeriod").disabled=!period||index===generatedPeriods.length-1;
-
-  if(!period){
-    const message = document.createElement("p");
-    message.className = "empty";
-    message.textContent = "Fix the schedule setup to see this pay period.";
-    week1.appendChild(message);
-    return;
-  }
+  els.guideWeeks.forEach(week=>{ week.innerHTML = ""; });
+  els.previousPeriod.disabled = !period||index===0;
+  els.nextPeriod.disabled = !period||index===generatedPeriods.length-1;
+  els.guide.hidden = !period;
+  els.guideEmpty.hidden = Boolean(period);
+  if(!period) return;
 
   const today = new Date();
+  els.weekRanges.forEach((range,w)=>{
+    range.textContent = `${monthDay(addDays(period.start,w*7))} – ${monthDay(addDays(period.start,w*7+6))}`;
+  });
   period.vals.forEach((value,i)=>{
     const date = addDays(period.start,i);
-    const isOff = value===period.off;
-    const isToday = date.getFullYear()===today.getFullYear()&&date.getMonth()===today.getMonth()&&date.getDate()===today.getDate();
-    const row = document.createElement("div");
-    row.className = `guide-row${isOff ? " is-off" : ""}${isToday ? " is-today" : ""}`;
-    if(isToday) row.title = "Today";
+    const isOff = value===OFF;
+    const isToday = sameDay(date,today);
+    const blank = '<span class="off-label">Off</span><span class="visually-hidden">, leave blank</span>';
+    const row = document.createElement("tr");
+    row.className = `${isOff ? "is-off" : ""}${isToday ? " is-today" : ""}`.trim();
     row.innerHTML = `
-      <div class="guide-day">${dayNames[date.getDay()].slice(0,3)}<span class="guide-date">${compactDate(date)}</span></div>
-      <div class="guide-value">${isOff ? "—" : period.shift}</div>
-      <div class="guide-value">${isOff ? "—" : "10 Hours"}</div>
+      <td class="day">${shortNames[date.getDay()]}<span class="date">${compactDate(date)}</span>${isToday ? '<span class="tag">Today</span>' : ""}</td>
+      <td>${isOff ? blank : period.shift}</td>
+      <td>${isOff ? '<span class="visually-hidden">Leave blank</span>' : HOURS}</td>
     `;
-    (i<7 ? week1 : week2).appendChild(row);
+    els.guideWeeks[i<7 ? 0 : 1].appendChild(row);
   });
 }
-function generate(keepSelection=true){
-  const anchor = document.getElementById("anchorMonth").value;
-  const startValue = document.getElementById("firstPeriod").value;
-  const count = Number(document.getElementById("periodCount").value);
-  const workSelect = document.getElementById("workCode");
-  const work = workSelect.value;
-  const shift = workSelect.options[workSelect.selectedIndex].text;
-  const baseDays = selectedDays();
-  const previousSelection = keepSelection ? Number(document.getElementById("guidePeriod").value)||0 : 0;
-
-  let anchorError = setFieldError("anchorMonth","anchorMonthError", anchor ? "" : "Choose a month.");
-  let startError = "";
-  if(!startValue){
-    startError = "Choose a start date.";
-  }else if(localDate(startValue).getDay()!==1){
-    startError = "The first pay period must start on a Monday.";
-  }
-  const firstPeriodError = setFieldError("firstPeriod","firstPeriodError",startError);
-  const countError = setFieldError("periodCount","periodCountError",
-    (!count||count<1||count>40) ? "Enter a number from 1 to 40." : "");
-  const daysError = setFieldError("dayChecks","daysError",
-    baseDays.length===0 ? "Pick at least one day off." : "");
-
-  if(anchorError||firstPeriodError||daysError) document.getElementById("setupPanel").open = true;
-  if(countError) document.getElementById("schedulePanel").open = true;
-
-  updateSummaryMeta(anchorError||firstPeriodError||daysError||countError ? "" : shift);
-
-  if(anchorError||firstPeriodError||countError||daysError){
-    generatedPeriods = [];
-    const guideSelect = document.getElementById("guidePeriod");
-    guideSelect.innerHTML = "<option value=\"\">Nothing scheduled</option>";
-    renderGuide();
-    return;
-  }
-
-  const [anchorY,anchorMonth] = anchor.split("-").map(Number);
-  const first = localDate(startValue);
-
-  generatedPeriods = [];
-  const tableBody = document.querySelector("#scheduleTable tbody");
-  const copyLines = [];
-  tableBody.innerHTML = "";
-
-  for(let periodIndex=0;periodIndex<count;periodIndex++){
-    const periodStart = addDays(first,periodIndex*14);
-    const periodEnd = addDays(periodStart,13);
-    const values = [];
+function showPeriod(index){
+  els.guidePeriod.value = Math.max(0,Math.min(generatedPeriods.length-1,index));
+  renderGuide();
+}
+function buildPeriods(count,baseDays,work,shift){
+  const [anchorY,anchorM] = els.anchorMonth.value.split("-").map(Number);
+  const first = localDate(els.firstPeriod.value);
+  return Array.from({length:count},(_,periodIndex)=>{
+    const start = addDays(first,periodIndex*14);
+    const vals = Array.from({length:14},(_,dayIndex)=>{
+      const date = addDays(start,dayIndex);
+      return rotatedOffDays(date,anchorY,anchorM-1,baseDays).has(date.getDay()) ? OFF : work;
+    });
+    return {start,end:addDays(start,13),vals,shift};
+  });
+}
+function renderTable(){
+  els.tableBody.innerHTML = "";
+  for(const period of generatedPeriods){
     const row = document.createElement("tr");
     const periodCell = document.createElement("td");
     periodCell.className = "period";
-    periodCell.textContent = `${numericDate(periodStart)} to ${numericDate(periodEnd)}`;
+    periodCell.textContent = `${numericDate(period.start)} to ${numericDate(period.end)}`;
     row.appendChild(periodCell);
 
-    for(let dayIndex=0;dayIndex<14;dayIndex++){
-      const date = addDays(periodStart,dayIndex);
-      const offDays = rotatedOffDays(date,anchorY,anchorMonth-1,baseDays);
-      const isOff = offDays.has(date.getDay());
-      const value = isOff ? "X" : work;
-      values.push(value);
-
+    period.vals.forEach((value,dayIndex)=>{
+      const date = addDays(period.start,dayIndex);
+      const isOff = value===OFF;
       const cell = document.createElement("td");
       cell.className = isOff ? "off" : "work";
       cell.textContent = isOff ? "" : value;
       cell.title = `${dayNames[date.getDay()]} ${numericDate(date)}`;
       row.appendChild(cell);
-    }
-
-    tableBody.appendChild(row);
-    copyLines.push(`${numericDate(periodStart)}--${numericDate(periodEnd)}\t${values.join("\t")}`);
-    generatedPeriods.push({
-      label:`${shortDate(periodStart)} to ${shortDate(periodEnd)}`,
-      start:periodStart,
-      vals:values,
-      off:"X",
-      shift
     });
+    els.tableBody.appendChild(row);
   }
-
-  const guideSelect = document.getElementById("guidePeriod");
-  guideSelect.innerHTML = "";
+  copyText = generatedPeriods
+    .map(p=>`${numericDate(p.start)}--${numericDate(p.end)}\t${p.vals.join("\t")}`)
+    .join("\n");
+  const count = Number(els.periodCount.value);
+  els.scheduleMeta.textContent = count>=1 && count<=maxPeriods ? `${count} pay periods` : "";
+}
+function renderPeriodPicker(selection){
+  els.guidePeriod.innerHTML = "";
+  if(!generatedPeriods.length){
+    els.guidePeriod.add(new Option("Nothing scheduled",""));
+    return;
+  }
   generatedPeriods.forEach((period,index)=>{
-    const option = document.createElement("option");
-    option.value = index;
-    option.textContent = period.label;
-    guideSelect.appendChild(option);
+    const sameYear = period.start.getFullYear()===period.end.getFullYear();
+    els.guidePeriod.add(new Option(`${sameYear ? monthDay(period.start) : shortDate(period.start)} – ${shortDate(period.end)}`,index));
   });
-  guideSelect.value = Math.min(previousSelection,generatedPeriods.length-1);
-  document.getElementById("copyText").textContent = copyLines.join("\n");
-  saveSettings();
+  els.guidePeriod.value = Math.min(selection,generatedPeriods.length-1);
+}
+function generate(keepSelection=true){
+  const count = Number(els.periodCount.value);
+  const work = selectedWork();
+  const baseDays = selectedDays();
+  const selection = keepSelection ? Number(els.guidePeriod.value)||0 : 0;
+
+  const valid = validate(count,baseDays);
+  generatedPeriods = valid ? buildPeriods(count,baseDays,work,shiftNames[work]) : [];
+  renderTable();
+  renderPeriodPicker(selection);
+  if(valid) saveSettings();
   renderGuide();
 }
 
+/* ---------- Events ---------- */
 loadSettings();
 generate(false);
 
-document.querySelectorAll("#setupPanel input, #setupPanel select, #periodCount").forEach(control=>{
+document.querySelectorAll("#setup input, #periodCount").forEach(control=>{
   control.addEventListener("change",()=>generate());
 });
-document.getElementById("resetDefaults").addEventListener("click",()=>{
-  localStorage.removeItem(storageKey);
-  applyDefaults();
+$("resetDefaults").addEventListener("click",()=>{
+  try{ localStorage.removeItem(storageKey); }catch(error){}
+  applySettings(defaultSettings());
   generate(false);
 });
-document.getElementById("guidePeriod").addEventListener("change",renderGuide);
-document.getElementById("previousPeriod").addEventListener("click",()=>{
-  const select = document.getElementById("guidePeriod");
-  select.value = Math.max(0,Number(select.value)-1);
-  renderGuide();
-});
-document.getElementById("nextPeriod").addEventListener("click",()=>{
-  const select = document.getElementById("guidePeriod");
-  select.value = Math.min(generatedPeriods.length-1,Number(select.value)+1);
-  renderGuide();
-});
+els.guidePeriod.addEventListener("change",renderGuide);
+els.previousPeriod.addEventListener("click",()=>showPeriod(Number(els.guidePeriod.value)-1));
+els.nextPeriod.addEventListener("click",()=>showPeriod(Number(els.guidePeriod.value)+1));
 document.querySelectorAll(".week-tabs button").forEach(button=>{
   button.addEventListener("click",()=>{
-    const showWeek2 = button.dataset.week==="2";
-    document.getElementById("guide").classList.toggle("show-w2",showWeek2);
-    document.querySelectorAll(".week-tabs button").forEach(b=>{
-      b.setAttribute("aria-pressed",String(b===button));
-    });
+    els.guide.classList.toggle("show-w2",button.dataset.week==="2");
+    document.querySelectorAll(".week-tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b===button)));
   });
 });
-document.getElementById("copyAll").addEventListener("click",async()=>{
-  const status = document.getElementById("copyStatus");
+$("copyAll").addEventListener("click",async()=>{
+  if(!copyText){
+    els.copyStatus.textContent = "Nothing to copy yet. Fix the highlighted setting first.";
+    return;
+  }
   try{
-    await navigator.clipboard.writeText(document.getElementById("copyText").textContent);
-    status.textContent = "Schedule copied.";
+    await navigator.clipboard.writeText(copyText);
+    els.copyStatus.textContent = "Schedule copied.";
   }catch(error){
-    status.textContent = "Your browser blocked copying. Select and copy the table instead.";
+    els.copyStatus.textContent = "Your browser blocked copying. Select the table and copy it instead.";
   }
 });
-document.getElementById("printSchedule").addEventListener("click",()=>window.print());
+$("printSchedule").addEventListener("click",()=>window.print());
+// Make Ctrl/Cmd+P print the schedule even when its panel is collapsed.
+window.addEventListener("beforeprint",()=>{ els.schedulePanel.open = true; });
 </script>
 </body>
 </html>
