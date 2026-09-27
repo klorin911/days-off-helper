@@ -7,19 +7,19 @@
 <style>
   :root{
     color-scheme:light;
-    --page:#f4f5f7; --surface:#fff; --ink:#15181e; --ink-soft:#363c46; --muted:#555d6a;
-    --line:#dfe2e7; --line-strong:#b9bfc9; --track:#eceef2; --selected:#fff;
-    --accent:#2b62d9; --accent-hover:#2353bb; --accent-soft:#edf2fd; --on-accent:#fff;
-    --off-row:#f6f7f9; --error:#c2392f;
-    --shadow:0 1px 2px rgba(20,24,31,.05);
+    --page:#f5f3ef; --surface:#fffdfa; --ink:#22252b; --ink-soft:#3b4048; --muted:#585e68;
+    --line:#e6e2db; --line-strong:#c4bfb6; --track:#eeebe5; --selected:#fffdfa;
+    --accent:#3867c0; --accent-hover:#2f58a6; --accent-soft:#e2eaf8; --on-accent:#fff; --accent-ink:#3867c0;
+    --off-row:#eef2f9; --error:#c2392f;
+    --shadow:0 1px 3px rgba(60,50,35,.06);
   }
   @media(prefers-color-scheme:dark){
     :root{
       color-scheme:dark;
-      --page:#121418; --surface:#1b1e25; --ink:#f3f5f8; --ink-soft:#dde1e7; --muted:#b6bcc6;
-      --line:#343944; --line-strong:#59606d; --track:#262a32; --selected:#434b5a;
-      --accent:#8fb2ff; --accent-hover:#a9c4ff; --accent-soft:#243150; --on-accent:#0d1017;
-      --off-row:#262930; --error:#ff8a80;
+      --page:#131418; --surface:#1f2229; --ink:#eceef2; --ink-soft:#d6dae0; --muted:#adb3bd;
+      --line:#343843; --line-strong:#585e6a; --track:#2a2d35; --selected:#414756;
+      --accent:#3b6cd4; --accent-hover:#3161c4; --accent-soft:#283554; --on-accent:#fff; --accent-ink:#93b3f2;
+      --off-row:#222a3c; --error:#ff8a80;
       --shadow:none;
     }
   }
@@ -33,7 +33,7 @@
   button,input,select{font:inherit;color:inherit}
   button{cursor:pointer}
   h1,h2,h3,p{margin:0}
-  :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  :focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
   .wrap{width:min(100% - 32px,920px);margin:0 auto;padding:36px 0 64px}
   .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
@@ -41,7 +41,7 @@
   .top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
   h1{font-size:25px;font-weight:700;letter-spacing:-.02em}
   .link{background:none;border:0;padding:8px 0;color:var(--ink-soft);font-size:15px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
-  .link:hover{color:var(--accent)}
+  .link:hover{color:var(--accent-ink)}
 
   /* ---------- Shared surfaces ---------- */
   .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
@@ -67,9 +67,9 @@
   }
   .toggles input{position:absolute;opacity:0;pointer-events:none;width:auto;min-height:0}
   .toggles label:hover{color:var(--ink)}
-  .toggles input:checked+label{background:var(--selected);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(20,24,31,.12)}
-  #dayChecks .toggles input:checked+label{background:var(--accent);color:var(--on-accent);box-shadow:none}
-  .toggles input:focus-visible+label{outline:3px solid var(--accent);outline-offset:1px}
+  .toggles input:checked+label{background:var(--accent);color:var(--on-accent);font-weight:600}
+  .toggles input:disabled+label{opacity:.45;cursor:not-allowed;color:var(--ink-soft)}
+  .toggles input:focus-visible+label{outline:3px solid var(--accent-ink);outline-offset:1px}
   #dayChecks[aria-invalid="true"] .toggles{box-shadow:0 0 0 1px var(--error)}
 
   /* ---------- Pay period ---------- */
@@ -94,7 +94,7 @@
     transition:background-color .12s,border-color .12s,color .12s
   }
   .nav-button svg{width:20px;height:20px}
-  .nav-button:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .nav-button:hover:not(:disabled){border-color:var(--accent-ink);background:var(--accent-soft);color:var(--accent-ink)}
   .nav-button:active:not(:disabled){transform:scale(.95)}
   .nav-button:disabled{opacity:.3;cursor:not-allowed}
 
@@ -189,6 +189,24 @@
     .schedule-tools{display:block}
     .count-field{width:100%;margin-bottom:12px}
     .actions{display:grid;grid-template-columns:1fr 1fr}
+    .button{padding:0 10px;font-size:15px;white-space:nowrap}
+    .day-table td{height:48px;font-size:16px;white-space:nowrap}
+    #scheduleTable{font-size:14px}
+    #scheduleTable th,#scheduleTable td{padding:10px 8px}
+    #scheduleTable td.period{white-space:normal;line-height:1.35}
+    #scheduleTable td.period span{white-space:nowrap}
+  }
+  @media(max-width:400px){
+    .top{gap:12px}
+    h1{font-size:20px}
+    .setup{padding:16px 14px}
+    .toggles{gap:2px}
+    .period-nav{grid-template-columns:40px 1fr 40px}
+    .nav-button{width:40px;height:40px}
+    #guidePeriod{font-size:16px}
+    .week{padding:14px 8px}
+    .day-table th,.day-table td{padding:0 8px}
+    .day-table .date{margin-left:6px}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
   @media print{
@@ -220,7 +238,7 @@
         </div>
       </fieldset>
 
-      <fieldset id="dayChecks" aria-describedby="daysHelp">
+      <fieldset id="dayChecks">
         <legend>Days off</legend>
         <div class="toggles">
           <input type="checkbox" id="d1" checked><label for="d1">Mon</label>
@@ -232,7 +250,6 @@
           <input type="checkbox" id="d0" checked><label for="d0">Sun</label>
         </div>
         <p class="field-error" id="daysError" role="alert" hidden></p>
-        <p class="help" id="daysHelp">Your days off move forward one weekday each month.</p>
       </fieldset>
 
       <div>
@@ -326,6 +343,7 @@ const storageKey = "rotating-days-off-settings";
 const OFF = "X";
 const HOURS = "10 Hours";
 const maxPeriods = 40;
+const maxDaysOff = 3;
 
 const $ = id=>document.getElementById(id);
 const els = {
@@ -385,6 +403,10 @@ function rotatedOffDays(date,anchorY,anchorM,baseDays){
 function selectedDays(){
   return dayBoxes.flatMap((box,i)=>box.checked ? [i] : []);
 }
+function updateDayLimit(){
+  const full = selectedDays().length>=maxDaysOff;
+  dayBoxes.forEach(box=>{ box.disabled = full && !box.checked; });
+}
 function selectedWork(){
   return (shiftRadios.find(radio=>radio.checked)||shiftRadios[0]).value;
 }
@@ -404,7 +426,10 @@ function applySettings(settings){
     if(settings[key]) els[key].value = settings[key];
   }
   if(settings.workCode in shiftNames) shiftRadios.forEach(radio=>{ radio.checked = radio.value===settings.workCode; });
-  if(Array.isArray(settings.days)) dayBoxes.forEach((box,i)=>{ box.checked = settings.days.includes(i); });
+  if(Array.isArray(settings.days)){
+    const days = settings.days.slice(0,maxDaysOff);
+    dayBoxes.forEach((box,i)=>{ box.checked = days.includes(i); });
+  }
 }
 function saveSettings(){
   try{
@@ -507,7 +532,12 @@ function renderTable(){
     const row = document.createElement("tr");
     const periodCell = document.createElement("td");
     periodCell.className = "period";
-    periodCell.textContent = `${numericDate(period.start)} to ${numericDate(period.end)}`;
+    const [startText,endText] = [`${numericDate(period.start)} to`,numericDate(period.end)].map(text=>{
+      const span = document.createElement("span");
+      span.textContent = text;
+      return span;
+    });
+    periodCell.append(startText," ",endText);
     row.appendChild(periodCell);
 
     period.vals.forEach((value,dayIndex)=>{
@@ -544,6 +574,7 @@ function generate(keepSelection=true){
   const work = selectedWork();
   const baseDays = selectedDays();
   const selection = keepSelection ? Number(els.guidePeriod.value)||0 : 0;
+  updateDayLimit();
 
   const valid = validate(count,baseDays);
   generatedPeriods = valid ? buildPeriods(count,baseDays,work,shiftNames[work]) : [];
